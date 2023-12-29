@@ -1,0 +1,14 @@
+You have a task described as:
+```
+[task]
+```
+
+On the previous step you came up with a plan, first point of it is the following:
+```
+1. **Explore the Dataset**:
+   - Manually inspect a few JSON files to understand the structure. Look for patterns or keys that indicate the presence of code, the language of the code, and how repository and file path information are stored.
+```
+You need to implement this step by using tools or by suggesting a more detailed plan. You have the following tools:
+1) Python interpreter. Write a small program, run it through the interpreter and get it output as your prompt
+2) Bash explorer. To navigate on the file system, copy, delete, rename files etc. Send a command and get its output as your prompt
+3) Ask human. If you have some pieces of information missed, ask human and get his response as your prompt

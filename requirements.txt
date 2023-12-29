@@ -1,0 +1,5 @@
+sqlalchemy
+aiogram==3.0.0b7
+db-sqlite3
+openpyxl
+openai

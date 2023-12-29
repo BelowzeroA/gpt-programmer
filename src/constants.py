@@ -1,0 +1,1 @@
+OPERATION_MASTER_PLAN = 'master_plan'

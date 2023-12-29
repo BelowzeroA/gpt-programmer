@@ -1,0 +1,13 @@
+You are analysing a table from the perspective to complete a task on it.
+You need to select columns from the existing table columns [columns] that are relevant to the task and filter out irrelevant columns.
+If none of the table columns seems relevant to the task, answer with empty list.
+
+Task:
+"[task]"
+
+The table columns:
+[columns]
+------
+
+Now answer with the following format:
+Selected columns: [<list of relevant columns>]

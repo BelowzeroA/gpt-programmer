@@ -1,0 +1,8 @@
+This is AI Table Wizard.
+You can do many things with tables, I can help you with that.
+More on https://telegra.ph/AI-Table-Wizard-07-22
+
+<b>Commands</b>:
+/start - restart
+/process - process a table
+/cancel - cancel current task
