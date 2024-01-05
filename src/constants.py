@@ -1,1 +1,3 @@
 OPERATION_MASTER_PLAN = 'master_plan'
+OPERATION_PLAN_STEP = 'plan_step'
+OPERATION_USE_TOOL = 'use_tool'

@@ -120,27 +120,9 @@ class GPTPromptManager:
 
         return parsed
 
-    def _parse_response_select_columns(self, prompt, response: str):
-        parts = response.split(":")
-        if len(parts) < 2:
-            return None
-
-        list_presentation = parts[1].strip()
-        if "[]" in list_presentation:
-            return []
-
-        # regex to extract content in brackets
-        parsed = re.findall(r'\[(.*?)\]', list_presentation)
-        if len(parsed) == 0:
-            self.logger.generation_error("Failed to parse response", prompt, response)
-            return None
-
-        try:
-            parsed = json.loads("[" + parsed[0] + "]")
-        except:
-            self.logger.generation_error("Failed to parse response", prompt, response)
-            return None
-        return parsed
+    def _parse_response_plan_step(self, prompt, response: str):
+        # just select a mentioned number with regex
+        return self.extract_numbers(response)
 
     def _parse_response_build_plan(self, prompt, response: str):
         lines = response.split("\n")

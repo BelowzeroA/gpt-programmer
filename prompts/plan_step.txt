@@ -1,0 +1,16 @@
+You have a task described as:
+```
+[task]
+```
+
+On the previous step you came up with a plan, first point of it is the following:
+```
+[plan_point]
+```
+You need to implement this step by using tools or by suggesting a more detailed plan. You have the following tools:
+1) Python interpreter. Write a small program, run it through the interpreter and get it output as your prompt
+2) Bash explorer. To navigate on the file system, copy, delete, rename files etc. Send a command and get its output as your prompt
+3) Ask human. If you have some pieces of information missed, ask human and get his response as your prompt
+
+On this step you just choose the tool. Later you will provide details of using the tool.
+The tool you choose is:

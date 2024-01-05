@@ -1,12 +1,12 @@
 import os
 
-from constants import OPERATION_MASTER_PLAN
+from constants import OPERATION_MASTER_PLAN, OPERATION_PLAN_STEP, OPERATION_USE_TOOL
 from file_utils import Utils
 from gpt_api import GPTApi
 from gpt_prompt_manager import GPTPromptManager
 from base_plugin import BasePlugin
 from logger import Logger
-
+from plugins import *
 
 utils = Utils()
 log_dir = utils.path_from_root("logs")
@@ -31,6 +31,10 @@ class GptProgrammer:
 
     def run(self, task):
         master_plan = self.build_master_plan(task)
+        for plan_point in master_plan:
+            step_begin = self.plan_step(task, plan_point)
+            step_result = self.implement_step(task, plan_point, step_begin)
+        print(master_plan)
 
     def build_master_plan(self, task):
         params = {"task": task}
@@ -40,3 +44,22 @@ class GptProgrammer:
             max_tokens=400
         )
         return plan
+
+    def plan_step(self, task, step):
+        params = {"task": task, "plan_point": step}
+        step = self.prompt_manager.generate_parse(
+            operation=OPERATION_PLAN_STEP,
+            params=params,
+            max_tokens=40
+        )
+        return step
+
+    def implement_step(self, task, step, tool):
+        plugin = self.plugins[tool]
+        params = {"task": task, "plan_point": step}
+        step = self.prompt_manager.generate_parse(
+            operation=OPERATION_USE_TOOL,
+            params=params,
+            max_tokens=40
+        )
+        return step

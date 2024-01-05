@@ -7,10 +7,7 @@ from openai import APIConnectionError, RateLimitError
 # from openai.error import APIConnectionError, RateLimitError
 
 # OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
-# OPENAI_API_KEY = "sk-xLhTEdEG34oWzcwkZFwqQ5NzwxWjwGxN3G7ZEi0m"
-# OPENAI_API_KEY = "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" # GPT-4
-OPENAI_API_KEY = "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" # my key
-OPENAI_API_KEY = "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" # dealroom key
+OPENAI_API_KEY = "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"
 
 openai.api_key = OPENAI_API_KEY
 
