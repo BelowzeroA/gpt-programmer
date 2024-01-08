@@ -91,12 +91,20 @@ class GPTPromptManager:
 
         return None
 
-    def parse_response(self, state: str, prompt, response: str):
+    def parse_response(self, state: str, prompt, response: str, custom_parser: Any = None):
+        if custom_parser:
+            return custom_parser(response)
         if state not in self.prompts:
             raise ValueError("Unknown state: " + state)
         return self._parse_response_impl(state, prompt, response)
 
-    def generate_parse(self, operation: str, params: dict, max_tokens: int = 50):
+    def generate_parse(
+            self,
+            operation: str,
+            params: dict,
+            max_tokens: int = 50,
+            custom_parser: Any = None
+    ):
         system_prompt, prompt = self.get_prompt(
             operation,
             parameters=params
@@ -107,7 +115,8 @@ class GPTPromptManager:
         result = self.parse_response(
             operation,
             prompt=prompt,
-            response=response
+            response=response,
+            custom_parser=custom_parser
         )
         return result
 
@@ -123,6 +132,10 @@ class GPTPromptManager:
     def _parse_response_plan_step(self, prompt, response: str):
         # just select a mentioned number with regex
         return self.extract_numbers(response)
+
+    def _parse_response_use_tool(self, prompt, response: str):
+        # just select a mentioned number with regex
+        return response
 
     def _parse_response_build_plan(self, prompt, response: str):
         lines = response.split("\n")

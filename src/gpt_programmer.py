@@ -6,7 +6,7 @@ from gpt_api import GPTApi
 from gpt_prompt_manager import GPTPromptManager
 from base_plugin import BasePlugin
 from logger import Logger
-from plugins import *
+import plugins
 
 utils = Utils()
 log_dir = utils.path_from_root("logs")
@@ -23,10 +23,10 @@ class GptProgrammer:
     def load_plugins(self):
         # Collect all subclasses of BasePlugin
         # For each plugin, create an instance and store it in a dict
-        result = {}
+        result = []
         for plugin_class in BasePlugin.__subclasses__():
             plugin = plugin_class(self.logger)
-            result[plugin_class.name] = plugin
+            result.append(plugin)
         return result
 
     def run(self, task):
@@ -54,12 +54,14 @@ class GptProgrammer:
         )
         return step
 
-    def implement_step(self, task, step, tool):
-        plugin = self.plugins[tool]
-        params = {"task": task, "plan_point": step}
-        step = self.prompt_manager.generate_parse(
+    def implement_step(self, task, step, tool_idx):
+        plugin = self.plugins[tool_idx]
+        params = {"task": task, "plan_point": step, "tool_preparation": plugin.PREPARATION_PROMPT}
+        tool_input = self.prompt_manager.generate_parse(
             operation=OPERATION_USE_TOOL,
             params=params,
-            max_tokens=40
+            max_tokens=800,
+            custom_parser=plugin.response_parser
         )
-        return step
+        result = plugin.run(task, tool_input)
+        return result

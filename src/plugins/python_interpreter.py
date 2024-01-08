@@ -1,36 +1,62 @@
-from base_plugin import BasePlugin
-from gpt_api import GPTApi
-from gpt_prompt_manager import GPTPromptManager
+import os
+import subprocess
+import sys
 
-operation_name = "operation_gpt"
+from base_plugin import BasePlugin
+from file_utils import Utils
+
+
+utils = Utils()
+PROMPTS_DIR = utils.path_from_root("prompts")
+PREPARATION_PROMPT = utils.load_list_from_file(
+    os.path.join(PROMPTS_DIR, "python_interpreter_preparation.txt")
+)
 
 
 class PythonInterpreterPlugin(BasePlugin):
 
     name = "python_interpreter"
+    PREPARATION_PROMPT = PREPARATION_PROMPT
 
     def __init__(self, logger):
         super().__init__(logger)
 
-    def run(self, data, params):
-        data_for_api = ""
-        if params["input_source"] == "Table":
-            if len(params["columns"]) > 1:
-                data_for_api = {}
-                for column in params["columns"]:
-                    data_for_api[column] = data[column]
-            else:
-                data_for_api = data[params["columns"][0]]
-        elif params["input_source"] == "PreviousOperation" and isinstance(data, str) and \
-                len(data) > 0:
-            data_for_api = data
+    def run(self, task, code):
+        if "ask_human" in code:
+            code = "from inline_functions import __ask_human__\n" + code
 
-        if not isinstance(data_for_api, str):
-            return ""
+        temp_module_name = "temp_module.py"
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        module_name = os.path.join(current_dir, temp_module_name)
+        with open(module_name, "w") as f:
+            f.write(code)
+        # run python interpreter
 
-        response = self.prompt_manager.generate_parse(
-            operation=operation_name,
-            params={"task": params["operation"], "data": data_for_api},
-            max_tokens=500
+        cmd = sys.executable + " " + module_name
+        p = subprocess.Popen(
+            cmd,
+            shell=True,
+            # stdout=subprocess.PIPE,
+            cwd=current_dir,
+            # creationflags=CREATE_NEW_CONSOLE
         )
-        return response
+        stdout, stderr = p.communicate(timeout=60)
+        stdout = stdout.decode("utf-8")
+        return stdout
+
+    @staticmethod
+    def response_parser(response: str):
+        lines = response.split("\n")
+        result = []
+        code_started = False
+        for line in lines:
+            if line.strip().startswith("```python"):
+                code_started = True
+                continue
+            if line.strip().startswith("```") and code_started:
+                code_started = False
+                continue
+            if code_started:
+                result.append(line)
+        return "\n".join(result)
+
