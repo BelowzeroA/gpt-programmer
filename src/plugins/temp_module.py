@@ -2,33 +2,42 @@ from inline_functions import __ask_human__
 import os
 import json
 
-def analyze_json_structure(file_path):
-    with open(file_path, 'r') as file:
-        data = json.load(file)
-        # Print the structure of the JSON file for analysis
-        print(json.dumps(data, indent=4, sort_keys=True))
-
 def main():
-    # Check if the dataset directory path is known
+    # Define the directory where the dataset files are located
+    dataset_directory = __ask_human__("What is the path to the dataset directory?")
+    
+    # Get a list of files in the directory
     try:
-        dataset_directory = __ask_human__("What is the path to the dataset directory?")
-    except NameError:
-        # If the __ask_human__ function is not available, set a default path
-        dataset_directory = './dataset'  # Replace with the actual path if known
-
-    # Check if the directory exists
-    if not os.path.exists(dataset_directory):
-        raise FileNotFoundError(f"The directory {dataset_directory} does not exist.")
-
-    # List all files in the directory
-    json_files = [f for f in os.listdir(dataset_directory) if f.endswith('.json')]
-
-    # Analyze the structure of the first few JSON files
-    for json_file in json_files[:3]:  # Adjust the number of files to analyze as needed
-        file_path = os.path.join(dataset_directory, json_file)
-        print(f"Analyzing the structure of {json_file}:")
-        analyze_json_structure(file_path)
-        print("\n")
+        dataset_files = os.listdir(dataset_directory)
+    except FileNotFoundError:
+        print(f"Directory {dataset_directory} not found.")
+        return
+    
+    # Select a subset of files for analysis
+    subset_files = dataset_files[:5]  # Analyze the first 5 files for example
+    
+    # Analyze the structure of the files
+    for file_name in subset_files:
+        file_path = os.path.join(dataset_directory, file_name)
+        with open(file_path, 'r', encoding='utf-8') as file:
+            try:
+                # Load the content of the file as JSON
+                data = json.load(file)
+                
+                # Since the structure is unknown, print out the type of the data
+                # and keys if it's a dictionary
+                print(f"File: {file_name}")
+                print(f"Type of data: {type(data)}")
+                if isinstance(data, dict):
+                    print(f"Keys: {list(data.keys())}")
+                elif isinstance(data, list):
+                    print("List of items, the structure of items:")
+                    if data:
+                        if isinstance(data[0], dict):
+                            print(f"Keys of the first item: {list(data[0].keys())}")
+                print("\n")
+            except json.JSONDecodeError:
+                print(f"Error decoding JSON from file {file_name}")
 
 if __name__ == "__main__":
     main()

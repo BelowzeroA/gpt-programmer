@@ -27,8 +27,8 @@ class GPTApi:
         while attempts < num_attempts:
             try:
                 chat = openai.chat.completions.create(
-                    # model="gpt-4",
-                    model="gpt-4-1106-preview",
+                    model="gpt-4",
+                    # model="gpt-4-1106-preview",
                     temperature=0.2,
                     max_tokens=max_tokens,
                     messages=[

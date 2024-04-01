@@ -99,3 +99,12 @@ ls: cannot access '/path/to/dataset/directory': No such file or directory
 ```
 
 Now come up with the next action using the tools above
+
+Agents:
+planner
+python_coder
+python_interpreter
+bash_coder
+bash_explorer
+ask_human
+manager

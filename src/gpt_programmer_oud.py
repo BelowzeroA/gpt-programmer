@@ -1,6 +1,5 @@
 import os
 
-from agents import PlannerAgent
 from constants import OPERATION_MASTER_PLAN, OPERATION_PLAN_STEP, OPERATION_USE_TOOL
 from file_utils import Utils
 from gpt_api import GPTApi
@@ -18,34 +17,8 @@ class GptProgrammer:
     def __init__(self):
         self.logger = logger
         self.api = GPTApi(self.logger)
+        self.prompt_manager = GPTPromptManager(self.api, self.logger)
         self.plugins = self.load_plugins()
-        self.planner = None
-        self.manager = None
-        self.agents = self._load_agents()
-
-    def load_agent(self, name, full_path):
-        path_to_module = "agents"
-        agent_module = __import__(path_to_module)
-        class_name = name.capitalize() + "Agent"
-        agent_class = getattr(agent_module, class_name)
-        agent = agent_class(name, full_path)
-        return agent
-
-    def _load_agents(self):
-        agents_dir = __file__.replace("gpt_programmer.py", "agents")
-
-        agents = []
-        for file in os.listdir(agents_dir):
-            full_path = os.path.join(agents_dir, file)
-            if os.path.isdir(full_path) and not file.startswith("_"):
-                agent = self.load_agent(file, full_path)
-                if agent is not None:
-                    if agent.name == "planner":
-                        self.planner = agent
-                    elif agent.name == "manager":
-                        self.manager = agent
-                    agents.append(agent)
-        return agents
 
     def load_plugins(self):
         # Collect all subclasses of BasePlugin
@@ -65,7 +38,11 @@ class GptProgrammer:
 
     def build_master_plan(self, task):
         params = {"task": task}
-        plan = self.planner.build_master_plan(params)
+        plan = self.prompt_manager.generate_parse(
+            operation=OPERATION_MASTER_PLAN,
+            params=params,
+            max_tokens=400
+        )
         return plan
 
     def plan_step(self, task, step):
