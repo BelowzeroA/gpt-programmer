@@ -1,28 +1,31 @@
 from agents.agent import Agent
 
+from gpt_api import GPTApi
+SYSTEM_PROMPT = "You are a project manager at a software company."
+
 
 class PlannerAgent(Agent):
 
-    def __int__(self, **kwargs):
-        super().__init__(kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.llm = GPTApi(self.logger, SYSTEM_PROMPT)
 
     def build_master_plan(self, params):
-        pass
-
-    def render(self, prompt: str) -> str:
-        env = Environment(loader=BaseLoader())
-        template = env.from_string(PROMPT)
-        return template.render(prompt=prompt)
+        prompt_template = self.prompts["master-plan"]
+        prompt = self.render_prompt(prompt_template, params)
+        response = self.llm.generate(prompt, max_tokens=400)
+        return self.parse_response(response)
 
     def validate_response(self, response: str) -> bool:
         return True
 
     def parse_response(self, response: str):
+        points_section = "points"
         result = {
             "project": "",
             "reply": "",
             "focus": "",
-            "plans": {},
+            points_section: {},
             "summary": ""
         }
 
@@ -42,7 +45,7 @@ class PlannerAgent(Agent):
                 current_section = "focus"
                 result["focus"] = line.split(":", 1)[1].strip()
             elif line.startswith("Plan:"):
-                current_section = "plans"
+                current_section = points_section
             elif line.startswith("Summary:"):
                 current_section = "summary"
                 result["summary"] = line.split(":", 1)[1].strip()
@@ -50,12 +53,12 @@ class PlannerAgent(Agent):
                 result["reply"] += " " + line
             elif current_section == "focus":
                 result["focus"] += " " + line
-            elif current_section == "plans":
+            elif current_section == points_section:
                 if line.startswith("- [ ] Step"):
                     current_step = line.split(":")[0].strip().split(" ")[-1]
-                    result["plans"][int(current_step)] = line.split(":", 1)[1].strip()
+                    result[points_section][int(current_step)] = line.split(":", 1)[1].strip()
                 elif current_step:
-                    result["plans"][int(current_step)] += " " + line
+                    result[points_section][int(current_step)] += " " + line
             elif current_section == "summary":
                 result["summary"] += " " + line.replace("```", "")
 

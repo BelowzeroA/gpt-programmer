@@ -1,4 +1,4 @@
-from gpt_programmer import GptProgrammer
+from environment import Environment
 
 
 def main():
@@ -7,8 +7,8 @@ def main():
     The task is to write a python module that does extract all code in java and put it in a single csv file with the following columns: repo_name, full_path, content.
     Note: files of the dataset can be huge, don't print them to the console.
     """
-    programmer = GptProgrammer()
-    programmer.run(task)
+    env = Environment()
+    env.run(task)
 
 
 if __name__ == "__main__":

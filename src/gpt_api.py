@@ -14,25 +14,26 @@ openai.api_key = OPENAI_API_KEY
 
 class GPTApi:
 
-    def __init__(self, logger):
+    def __init__(self, logger, system_prompt=None):
+        self.system_prompt = system_prompt
         self.logger = logger
 
     """
     Wrapper around OpenAI GPT-4 API
     """
-    def generate(self, system_prompt, prompt: str, max_tokens=50, num_attempts=5) -> str:
+    def generate(self, prompt: str, max_tokens=50, num_attempts=5) -> str:
 
         attempts = 0
         last_error = None
         while attempts < num_attempts:
             try:
                 chat = openai.chat.completions.create(
-                    model="gpt-4",
-                    # model="gpt-4-1106-preview",
+                    # model="gpt-4",
+                    model="gpt-4-1106-preview",
                     temperature=0.2,
                     max_tokens=max_tokens,
                     messages=[
-                        {"role": "system", "content": system_prompt},
+                        {"role": "system", "content": self.system_prompt},
                         {"role": "user", "content": prompt}
                     ],
                     # top_p=0

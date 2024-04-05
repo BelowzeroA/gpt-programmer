@@ -8,20 +8,23 @@ from gpt_prompt_manager import GPTPromptManager
 from base_plugin import BasePlugin
 from logger import Logger
 import plugins
+from state import State
 
 utils = Utils()
 log_dir = utils.path_from_root("logs")
 logger = Logger(os.path.join(log_dir, "task_executor.log"))
 
 
-class GptProgrammer:
+class Environment:
     def __init__(self):
         self.logger = logger
-        self.api = GPTApi(self.logger)
         self.plugins = self.load_plugins()
         self.planner = None
         self.manager = None
         self.agents = self._load_agents()
+        self.master_plan = None
+        self.current_state = None
+        self.project_specification = None
 
     def load_agent(self, name, full_path):
         path_to_module = "agents"
@@ -32,19 +35,20 @@ class GptProgrammer:
         return agent
 
     def _load_agents(self):
-        agents_dir = __file__.replace("gpt_programmer.py", "agents")
+        agents_dir = os.path.join(os.path.dirname(__file__), "agents")
 
-        agents = []
+        agents = {}
         for file in os.listdir(agents_dir):
             full_path = os.path.join(agents_dir, file)
             if os.path.isdir(full_path) and not file.startswith("_"):
                 agent = self.load_agent(file, full_path)
+                agent.environment = self
                 if agent is not None:
                     if agent.name == "planner":
                         self.planner = agent
                     elif agent.name == "manager":
                         self.manager = agent
-                    agents.append(agent)
+                    agents[agent.name] = agent
         return agents
 
     def load_plugins(self):
@@ -57,11 +61,16 @@ class GptProgrammer:
         return result
 
     def run(self, task):
-        master_plan = self.build_master_plan(task)
-        for plan_point in master_plan:
-            step_begin = self.plan_step(task, plan_point)
-            step_result = self.implement_step(task, plan_point, step_begin)
-        print(master_plan)
+        self.project_specification = task
+        self.master_plan = self.build_master_plan(task)
+        self.current_state = State(plan_point=self.master_plan["points"][1])
+        while not self.current_state.is_terminal():
+            self.execute_step()
+
+    def execute_step(self):
+        agent = self.manager.select_agent()
+        result = agent.act(self.current_state)
+        return result
 
     def build_master_plan(self, task):
         params = {"task": task}
