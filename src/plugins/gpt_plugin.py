@@ -1,5 +1,5 @@
 from base_plugin import BasePlugin
-from gpt_api import GPTApi
+from llm_api import LLMApi
 from gpt_prompt_manager import GPTPromptManager
 
 operation_name = "operation_gpt"
@@ -11,7 +11,7 @@ class GPTPlugin(BasePlugin):
 
     def __init__(self, logger):
         super().__init__(logger)
-        self.api = GPTApi(self.logger)
+        self.api = LLMApi(self.logger)
         self.prompt_manager = GPTPromptManager(self.api, self.logger)
 
     def run(self, data, params):

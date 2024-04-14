@@ -1,0 +1,36 @@
+The user set the task:
+```
+{{ task }}
+```
+
+You, as a manager devised a plan on previous steps, here it is:
+```
+{{ step_by_step_plan }}
+```
+
+This plan point that has just been executed:
+```
+{{ plan_point }}
+```
+{% if previous_step_context %}
+For execution, you have chosen an agent: "{{ previous_step_context.agent }}".
+The task for {{ previous_step_context.agent }} was:
+```
+{{ previous_step_context.task }}.
+```
+The result from {{ previous_step_context.agent }} was:
+```
+{{ previous_step_context.result }}
+```
+{% endif %}
+
+Decide now if you need to step forward with the same plan ("step_forward"),
+or if you need to change the plan and choose the point to execute next ("change_plan"),
+or the current step is not complete and you should continue by delegating the work to the agents ("continue_current_point").
+
+Answer in json in the following format:
+{
+    "decision": <"step_forward" or "change_plan" or "continue_current_point">,
+    "next_point": <the next plan point to execute, if decision in ["step_forward", "change_plan"]>
+    "new_plan": <the new plan, if decision == "change_plan">
+}

@@ -1,3 +1,0 @@
-Now upload a file you want to process.
-The following file types are supported: <b>XLS</b>, <b>XLSX</b>, <b>CSV</b>
-👉 Note that if you upload an Excel file, only one sheet will be processed.

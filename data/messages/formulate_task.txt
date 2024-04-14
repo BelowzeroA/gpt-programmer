@@ -1,4 +1,0 @@
-Now specify a task for the table.
-It can be something like:
-<i>Take column text and translate each row from Russian to English.
-Put the result put in the column translated</i>

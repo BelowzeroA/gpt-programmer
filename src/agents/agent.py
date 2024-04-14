@@ -3,13 +3,10 @@ import os
 from logger import Logger
 from jinja2 import Environment, BaseLoader
 
-log_dir = "logs"
-logger = Logger(os.path.join(log_dir, "task_executor.log"))
-
 
 class Agent:
 
-    def __init__(self, name, full_path):
+    def __init__(self, name, full_path, logger):
         self.name = name
         self.full_path = full_path
         self.prompts = self._load_prompts()

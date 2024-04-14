@@ -1,1 +1,0 @@
-You can upload a table here that you would like to process, and then specify a task you would like to be performed on the table.

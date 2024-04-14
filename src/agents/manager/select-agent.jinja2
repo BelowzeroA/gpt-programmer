@@ -6,6 +6,18 @@ Your manager devised a plan. You are now executing the following plan point:
 ```
 {{ plan_point }}
 ```
+{% if previous_step_context %}
+On the previous step, you have chosen the agent: {{ previous_step_context.agent }}.
+The task was:
+```
+{{ previous_step_context.task }}.
+```
+The result was:
+```
+{{ previous_step_context.result }}
+```
+{% endif %}
+
 Your task is to select an agent that fits best to implement the plan point and provide the result to the manager.
 
 Agents at your disposal:
@@ -24,7 +36,10 @@ Agents at your disposal:
     "agent_id": "ask_user",
     "description": "if some information necessary for the task is missing, the agent can ask the user for it."
 }
-
+{% if user_data %}
+Also consider the data that user entered on previous steps:
+{{ user_data }}
+{% endif %}
 Select agent, and write a task for him in the following format:
 {
     "agent": <agent_id>,

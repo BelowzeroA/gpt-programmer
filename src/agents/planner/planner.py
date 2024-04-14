@@ -1,6 +1,6 @@
 from agents.agent import Agent
 
-from gpt_api import GPTApi
+from llm_api import LLMApi
 SYSTEM_PROMPT = "You are a project manager at a software company."
 
 
@@ -8,7 +8,7 @@ class PlannerAgent(Agent):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.llm = GPTApi(self.logger, SYSTEM_PROMPT)
+        self.llm = LLMApi(self.logger, SYSTEM_PROMPT)
 
     def build_master_plan(self, params):
         prompt_template = self.prompts["master-plan"]
