@@ -1,0 +1,38 @@
+The user set the task:
+```
+{{ task }}
+```
+
+You, as a manager devised a plan on previous steps, here it is:
+```
+{{ step_by_step_plan }}
+```
+
+This plan point that is about to be executed:
+```
+{{ plan_point }}
+```
+
+For execution, you have chosen an agent: "{{ agent }}".
+The task for {{ agent }} is:
+```
+{{ agent_task }}.
+```
+
+There is a chain of agent actions the workflow has passed through before, and from some actions the agent have brought up some observations that would definitely help "{{ agent }}" to execute their task.
+Here are the observations:
+```
+{% for observation in observations %}
+Observation id: {{ observation.id }}
+Task: "{{ observation.task }}"
+Result:
+---
+{{ observation.result }}
+---
+{% endfor %}
+```
+
+Now choose observations that you think are relevant for the agent to know before executing the task
+Choose the observations by their id in the following format:
+["<id1>", "<id2>", ..]
+Nothing more, just a list of ids

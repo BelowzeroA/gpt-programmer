@@ -5,7 +5,6 @@ from constants import USER_ADDITIONAL_DATA_FILE
 from file_utils import Utils
 from base_plugin import BasePlugin
 from logger import Logger
-import plugins
 from state import State
 
 utils = Utils()
@@ -104,34 +103,15 @@ class Environment:
 
             self.current_state = new_state
 
-
     def execute_step(self):
+        step_context = {}
         agent = self.manager.select_agent()
-        result = agent.act()
+        step_context["observations"] = self.manager.select_observations()
+
+        result = agent.act(step_context)
         self.update_state(result)
 
     def build_master_plan(self, task):
         params = {"task": task}
         plan = self.planner.build_master_plan(params)
         return plan
-
-    def plan_step(self, task, step):
-        params = {"task": task, "plan_point": step}
-        step = self.prompt_manager.generate_parse(
-            operation=OPERATION_PLAN_STEP,
-            params=params,
-            max_tokens=40
-        )
-        return step
-
-    def implement_step(self, task, step, tool_idx):
-        plugin = self.plugins[tool_idx]
-        params = {"task": task, "plan_point": step, "tool_preparation": plugin.PREPARATION_PROMPT}
-        tool_input = self.prompt_manager.generate_parse(
-            operation=OPERATION_USE_TOOL,
-            params=params,
-            max_tokens=800,
-            custom_parser=plugin.response_parser
-        )
-        result = plugin.run(task, tool_input)
-        return result

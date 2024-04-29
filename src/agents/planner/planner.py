@@ -12,6 +12,9 @@ class PlannerAgent(Agent):
 
     def build_master_plan(self, params):
         prompt_template = self.prompts["master-plan"]
+        if self.injections:
+            params["injections"] = [inj.__dict__ for inj in self.injections]
+
         prompt = self.render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=400)
         return self.parse_response(response)
@@ -58,7 +61,7 @@ class PlannerAgent(Agent):
                     current_step = line.split(":")[0].strip().split(" ")[-1]
                     result[points_section][int(current_step)] = line.split(":", 1)[1].strip()
                 elif current_step:
-                    result[points_section][int(current_step)] += " " + line
+                    result[points_section][int(current_step)] += "\n" + line
             elif current_section == "summary":
                 result["summary"] += " " + line.replace("```", "")
 
@@ -68,9 +71,4 @@ class PlannerAgent(Agent):
         result["summary"] = result["summary"].strip()
 
         return result
-
-    def execute(self, prompt: str, project_name: str) -> str:
-        prompt = self.render(prompt)
-        response = self.llm.inference(prompt, project_name)
-        return response
 

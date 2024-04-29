@@ -1,7 +1,9 @@
 import os
 
-from logger import Logger
+import pandas as pd
 from jinja2 import Environment, BaseLoader
+
+from agents.injection import Injection
 
 
 class Agent:
@@ -10,6 +12,7 @@ class Agent:
         self.name = name
         self.full_path = full_path
         self.prompts = self._load_prompts()
+        self.injections = self._load_injections()
         self.logger = logger
         self.environment = None
 
@@ -26,19 +29,20 @@ class Agent:
 
         return prompts
 
-    def reset(self):
-        pass
+    def _load_injections(self):
+        agent_dir = __file__.replace("agent.py", self.name)
+        filename = os.path.join(agent_dir, "injections.csv")
+        if not os.path.exists(filename):
+            return []
 
-    def act(self, state):
-        pass
+        injections = []
+        df = pd.read_csv(filename)
+        for i, row in df.iterrows():
+            inj = Injection(row["title"], row["text"])
+            injections.append(inj)
+        return injections
 
-    def step(self, state, action, reward, next_state, done):
-        pass
-
-    def save(self, filename):
-        pass
-
-    def load(self, filename):
+    def act(self, context):
         pass
 
     @staticmethod

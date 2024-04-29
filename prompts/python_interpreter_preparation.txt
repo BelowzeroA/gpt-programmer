@@ -1,9 +1,0 @@
-Tool name: Python Interpreter
-Description:
-Specify executable python code (it must contain main() function)
-DON'T use input() or other functions that expect information from the user, if some information is missing just use the ask_human tool.
-So, if some information to write the code is missing just call the builtin function
-__ask_human__("<question to human>") (again, __ask_human__() is builtin - no need to import it) and the answer will be given to you on the next step.
-The execution of this code should lead you to the plan point implementation
-
-Code:

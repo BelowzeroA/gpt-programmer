@@ -39,9 +39,9 @@ Then write the code to implement the current step of the plan.
 Your response should only be Python code.
 
 Rules:
+- You should write clean and documented code.
+- The code should work on the first try without any errors or bugs.
 - Make executable python code (it must contain main() function)
-{% for injection in injections %}
-- {{ injection.text }}
-{% endfor %}
-
+- If the purpose of the step is to investigate something, print the result of the investigation so that the next AI agent would be able to continue the work.
+- If the step is about json structure investigation, collect keys and types of values from the the first element of the list.
 Never provide any explanation or context inside the response, only the code.

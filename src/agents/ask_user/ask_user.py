@@ -14,7 +14,7 @@ class AskUserAgent(Agent):
         super().__init__(*args, **kwargs)
         self.llm = LLMApi(self.logger, SYSTEM_PROMPT)
 
-    def act(self):
+    def act(self, context):
         print("There is a question for you:")
         print(self.environment.current_state.task_for_agent)
         user_response = input("Enter your answer: ")
