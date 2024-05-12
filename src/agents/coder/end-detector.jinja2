@@ -10,35 +10,14 @@ Step-by-step plan:
 ```
 {{ step_by_step_plan }}
 ```
-
-Current step you are implementing:
-```
-{{ current_step }}
-```
-
-Task clarification from your manager:
-```
-{{ task_clarification }}
-```
-{% if observations %}
-On the previous step, you took some actions and made observations that will help you to implement the current step.
-```
-{% for observation in observations %}
-Observation #{{ observation.id }}
-Task: "{{ observation.task }}"
-Result:
----
-{{ observation.result }}
----
-{% endfor %}
-```
-{% endif %}
 {% if user_data %}
 Also consider the data that user entered on previous steps:
 {{ user_data }}
 {% endif %}
+
 Read the step-by-step plan carefully. Think step-by-step.
-Then write the code to implement the current step of the plan.
+Now write a python module that detects if the task is completed and the end result is achieved.
+The module should output to console "completed" if the task is completed or describe the situation if it is not
 
 Your response should only be Python code.
 

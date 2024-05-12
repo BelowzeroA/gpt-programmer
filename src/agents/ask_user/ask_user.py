@@ -19,6 +19,8 @@ class AskUserAgent(Agent):
         print(self.environment.current_state.task_for_agent)
         user_response = input("Enter your answer: ")
 
+        user_response = user_response.replace("\\", "/")
+
         environment = self.environment
         prompt_template = self.prompts["make-variable-name"]
         params = {
@@ -51,9 +53,13 @@ class AskUserAgent(Agent):
             if json_started:
                 json_lines.append(line)
 
-        json_str = "\n".join(json_lines)
+        if not json_lines:
+            json_str = response
+        else:
+            json_str = "\n".join(json_lines)
+
         answer = json.loads(json_str)
         if "key_name" in answer:
             return answer["key_name"]
         else:
-            return answer.keys()[0]
+            return list(answer.keys())[0]

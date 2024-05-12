@@ -1,3 +1,20 @@
 title,text
 investigation,"To investigate something, store the result of the investigation in file ""report.txt"" so that the next AI agent would be able to continue the work"
-json investigation,"To investigate json file structure, collect keys and types of values from the the first three levels of the structure and store them in json format. If an element is a list, dive in and discover the structure of the first element"
+json investigation,"To investigate json file structure, collect keys and values from the the first three levels of the structure and store them in json format. If a value is of string type, output first 50 chars. If an element is a list, dive in and discover the structure of the first element. The output might look like
+JSON File Structure:
+{
+  ""group_1.json"": [
+{
+    ""created"": ""2022-10-13T18:32:23Z"",
+    ""group_no"": 2,
+    ""people"": [
+      {
+        ""name"": ""Ivan Dorn"",
+        ""birth_date"": ""2001-04-07""
+      }
+    ]
+  }
+]
+}"
+extracting data from json file,"To extract data from a json file use the structure that was determined on the previous steps
+"

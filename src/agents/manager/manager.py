@@ -33,7 +33,7 @@ class ManagerAgent(Agent):
             params["user_data"] = environment.user_data
 
         prompt = self.render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=200)
+        response = self.llm.generate(prompt, max_tokens=400)
         answer = self.parse_response(response)
         agent_name = answer["agent"]
         environment.current_state.agent = agent_name
@@ -110,7 +110,7 @@ class ManagerAgent(Agent):
         }
 
         prompt = self.render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=20)
+        response = self.llm.generate(prompt, max_tokens=40)
         observation_ids = self.parse_response(response)
         if observation_ids:
             observation_ids = [int(obs_id) for obs_id in observation_ids]
@@ -120,15 +120,11 @@ class ManagerAgent(Agent):
     def validate_response(self, response: str) -> bool:
         return True
 
-    # def parse_response(self, response: str):
-    #     if response.startswith("```json"):
-    #         response = response[8:].strip()
-    #     if response.endswith("```"):
-    #         response = response[:-3].strip()
-    #     answer = json.loads(response)
-    #     return answer
-
     def parse_response(self, response: str):
+        if response.startswith("\""):
+            response = response[1:]
+        if response.endswith("\""):
+            response = response[:-1]
         if response.startswith("```json"):
             response = response[8:].strip()
         if response.endswith("```"):
@@ -151,6 +147,7 @@ class ManagerAgent(Agent):
             if json_started:
                 json_lines.append(line)
         json_response = "\n".join(json_lines)
+        json_response = json_response.replace("\n", ' ')
         answer = json.loads(json_response)
         return answer
 

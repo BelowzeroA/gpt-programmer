@@ -27,6 +27,12 @@ class CoderAgent(Agent):
             response = response[:-3].strip()
         return response
 
+    def format_observation(self, observation: dict) -> str:
+        result = "Code:\n"
+        result += "```python\n" + observation["code"] + "\n```\n"
+        result += "Code run output:\n---\n" + observation["code_run_output"] + "\n---\n"
+        return result
+
     def act(self, context):
         prompt_template = self.prompts["write-code"]
         state = self.environment.current_state
@@ -38,6 +44,37 @@ class CoderAgent(Agent):
         }
         if context["observations"]:
             params["observations"] = context["observations"]
+            for observation in params["observations"]:
+                observation["result"] = self.format_observation(observation["result"])
+
+        if self.environment.user_data:
+            params["user_data"] = self.environment.user_data
+
+        if self.injections:
+            params["injections"] = [inj.__dict__ for inj in self.injections]
+
+        prompt = self.render_prompt(prompt_template, params)
+        response = self.llm.generate(prompt, max_tokens=2000)
+        code = self.parse_response(response)
+        result = {"code": code}
+        if code:
+            code_result = self.run_code(code)
+            result["code_run_output"] = code_result
+            if code_result and code_result.startswith("Traceback"):
+                result["code"] = self.highlight_error_line_in_code(code, code_result)
+
+        return result
+
+    def generate_end_detector(self):
+        prompt_template = self.prompts["end-detector"]
+        state = self.environment.current_state
+        params = {
+            "project_specification": self.environment.project_specification,
+            "step_by_step_plan": self.environment.master_plan["points"]
+        }
+
+        if self.environment.user_data:
+            params["user_data"] = self.environment.user_data
 
         if self.injections:
             params["injections"] = [inj.__dict__ for inj in self.injections]
@@ -49,7 +86,29 @@ class CoderAgent(Agent):
         if code:
             code_result = self.run_code(code)
             result["code_run_output"] = code_result
+            if code_result and code_result.startswith("Traceback"):
+                result["code"] = self.highlight_error_line_in_code(code, code_result)
+
         return result
+
+    def highlight_error_line_in_code(self, code: str, error) -> str:
+        last_error_line_number = None
+        for error_line in error.split("\n"):
+            if error_line.strip().startswith("File ") and " line " in error_line:
+                parts = error_line.split(",")
+                if len(parts) > 1:
+                    line_number = int(parts[1].split("line ")[1].strip())
+                    if line_number:
+                        last_error_line_number = line_number
+
+        if not last_error_line_number:
+            return code
+
+        lines = code.split("\n")
+        if len(lines) >= last_error_line_number:
+            lines[last_error_line_number - 1] = f"Error here >>> {lines[last_error_line_number - 1].strip()}"
+            code = "\n".join(lines)
+        return code
 
     def run_code(self, code: str) -> str:
         temp_module_name = "temp_module.py"
@@ -84,6 +143,9 @@ class CoderAgent(Agent):
                 with open(report_file, "r") as f:
                     output = f.read()
                 # rename report file to extension .bak
-                os.rename(report_file, report_file + ".bak")
+                dest_filename = report_file + ".bak"
+                if os.path.exists(dest_filename):
+                    os.remove(dest_filename)
+                os.rename(report_file, dest_filename)
         return output
 

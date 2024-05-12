@@ -12,7 +12,8 @@ OPENAI_API_KEY = "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"
 openai.api_key = OPENAI_API_KEY
 
 # MODEL = "gpt-4-turbo-2024-04-09"
-MODEL = "gpt-4-1106-preview"
+# MODEL = "gpt-4-turbo"
+MODEL = "gpt-4"
 
 
 class OpenAIApi:
@@ -24,7 +25,7 @@ class OpenAIApi:
     """
     Wrapper around OpenAI GPT-4 API
     """
-    def generate(self, prompt: str, max_tokens=50, num_attempts=5) -> str:
+    def generate(self, prompt: str, max_tokens=50, temperature=0, num_attempts=5) -> str:
 
         attempts = 0
         last_error = None
@@ -32,7 +33,7 @@ class OpenAIApi:
             try:
                 chat = openai.chat.completions.create(
                     model=MODEL,
-                    temperature=0.0,
+                    temperature=temperature,
                     max_tokens=max_tokens,
                     messages=[
                         {"role": "system", "content": self.system_prompt},
