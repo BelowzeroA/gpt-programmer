@@ -6,6 +6,12 @@ from llm_api import LLMApi
 
 SYSTEM_PROMPT = "You are a project manager at a software company."
 
+AGENT_NAME_MAPPING = {
+    "Python coder": "coder",
+    "Planner": "planner",
+    "Ask user": "ask_user",
+}
+
 
 class ManagerAgent(Agent):
 
@@ -39,13 +45,45 @@ class ManagerAgent(Agent):
         environment.current_state.agent = agent_name
         environment.current_state.task_for_agent = answer["task"]
         self.logger.info(f"Manager: selected agent: {agent_name}")
+        if agent_name in AGENT_NAME_MAPPING:
+            agent_name = AGENT_NAME_MAPPING[agent_name]
+        return environment.agents[agent_name]
+
+    def select_agent_for_end_detector(self):
+        environment = self.environment
+        prompt_template = self.prompts["select-agent-end-detector"]
+        params = {
+            "project_specification": environment.project_specification,
+            "step_by_step_plan": self.environment.master_plan["points"],
+        }
+
+        if environment.current_state.previous_state is not None:
+            previous_step_context = {
+                "agent": environment.current_state.previous_state.agent,
+                "task": environment.current_state.previous_state.task_for_agent,
+                "result": environment.current_state.previous_state.step_result
+            }
+            params["previous_step_context"] = previous_step_context
+
+        if environment.user_data:
+            params["user_data"] = environment.user_data
+
+        prompt = self.render_prompt(prompt_template, params)
+        response = self.llm.generate(prompt, max_tokens=400)
+        answer = self.parse_response(response)
+        agent_name = answer["agent"]
+        environment.current_state.agent = agent_name
+        environment.current_state.task_for_agent = answer["task"]
+        self.logger.info(f"Manager: selected agent: {agent_name}")
+        if agent_name in AGENT_NAME_MAPPING:
+            agent_name = AGENT_NAME_MAPPING[agent_name]
         return environment.agents[agent_name]
 
     def update_state(self):
         environment = self.environment
         prompt_template = self.prompts["update-state"]
         params = {
-            "task": environment.project_specification,
+            "project_specification": environment.project_specification,
             "plan_point": environment.current_state.plan_point,
             "step_by_step_plan": environment.master_plan["points"],
         }
@@ -101,7 +139,7 @@ class ManagerAgent(Agent):
 
         prompt_template = self.prompts["observations-selection"]
         params = {
-            "task": environment.project_specification,
+            "project_specification": environment.project_specification,
             "plan_point": environment.current_state.plan_point,
             "step_by_step_plan": environment.master_plan["points"],
             "agent_task": environment.current_state.task_for_agent,

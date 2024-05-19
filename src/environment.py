@@ -10,6 +10,7 @@ from state import State
 utils = Utils()
 log_dir = utils.path_from_root("logs")
 logger = Logger(os.path.join(log_dir, "task_executor.log"))
+MAIN_SECTION = "main"
 
 
 class Environment:
@@ -18,6 +19,8 @@ class Environment:
         self.plugins = self.load_plugins()
         self.planner = None
         self.manager = None
+        self.coder = None
+        self.end_detector = None
         self.agents = self._load_agents()
         self.master_plan = None
         self.current_state = None
@@ -48,6 +51,8 @@ class Environment:
                         self.planner = agent
                     elif agent.name == "manager":
                         self.manager = agent
+                    elif agent.name == "coder":
+                        self.coder = agent
                     agents[agent.name] = agent
         return agents
 
@@ -71,9 +76,12 @@ class Environment:
     def run(self, task):
         self.project_specification = task
         self.master_plan = self.build_master_plan(task)
-        self.current_state = State(plan_point=self.master_plan["points"][1])
-        while not self.current_state.is_terminal():
-            self.execute_step()
+        self.current_state = State(plan_point="Making an end detector", section="end_detector")
+        self.end_detector = self.build_end_detector()
+        if not self.end_detector:
+            return "Failed to build end detector"
+        self.current_state = State(plan_point=self.master_plan["points"][1], section="main")
+        self.main_loop()
 
     def update_state(self, result):
         self.current_state.step_result = result
@@ -97,7 +105,7 @@ class Environment:
                         break
                 next_point_key = plan_point + 1
                 plan_point = self.master_plan["points"][next_point_key]
-            new_state = State(plan_point=plan_point)
+            new_state = State(plan_point=plan_point, section=MAIN_SECTION)
             new_state.task_for_agent = plan_point
             new_state.previous_state = self.current_state
 
@@ -115,3 +123,21 @@ class Environment:
         params = {"task": task}
         plan = self.planner.build_master_plan(params)
         return plan
+
+    def build_end_detector(self):
+        attempts = 0
+        while attempts < 3:
+            step_context = {}
+            agent = self.manager.select_agent_for_end_detector()
+            step_context["observations"] = self.manager.select_observations()
+            if agent.name == "coder":
+                plan = self.coder.generate_end_detector()
+            else:
+                result = agent.act(step_context)
+            self.update_state(result)
+            attempts += 1
+        return plan
+
+    def main_loop(self):
+        while not self.current_state.is_terminal():
+            self.execute_step()

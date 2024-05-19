@@ -1,33 +1,57 @@
-import json
 import os
+import json
+
+def investigate_json_structure(json_data, level=1, structure=None):
+    if structure is None:
+        structure = {}
+
+    if level <= 3:
+        if isinstance(json_data, dict):
+            for key, value in json_data.items():
+                if isinstance(value, dict):
+                    structure[key] = {}
+                    investigate_json_structure(value, level + 1, structure[key])
+                elif isinstance(value, list):
+                    structure[key] = []
+                    structure[key].append({})
+                    if value:
+                        investigate_json_structure(value[0], level + 1, structure[key][0])
+                else:
+                    if isinstance(value, str):
+                        structure[key] = value[:50]
+                    else:
+                        structure[key] = value
+        elif isinstance(json_data, list):
+            if json_data:
+                investigate_json_structure(json_data[0], level, structure)
+
+    return structure
 
 def main():
-    # Set the path to the dataset directory
-    dataset_dir = '/Users/user005/work/testgen/data/github'
+    dataset_dir = "c:/Work/projects/data/"
+    report_file = "report.txt"
 
-    # Get a list of JSON files in the dataset directory
-    json_files = [file for file in os.listdir(dataset_dir) if file.endswith('.json')]
+    # Investigate directory structure
+    dir_structure = []
+    for root, dirs, files in os.walk(dataset_dir):
+        dir_structure.append(f"Directory: {root}")
+        dir_structure.append(f"  Subdirectories: {dirs}")
+        dir_structure.append(f"  Files: {files}")
 
-    # Load a sample JSON file
-    sample_file = os.path.join(dataset_dir, json_files[0])
-    with open(sample_file, 'r') as file:
-        data = json.load(file)
+    # Investigate JSON file structure
+    json_files = [file for file in os.listdir(dataset_dir) if file.endswith(".json")]
+    json_structure = {}
+    for json_file in json_files[:3]:
+        with open(os.path.join(dataset_dir, json_file), "r") as file:
+            json_data = json.load(file)
+            json_structure[json_file] = investigate_json_structure(json_data)
 
-    # Analyze the structure of the JSON data
-    def analyze_json(obj, level=0):
-        if isinstance(obj, dict):
-            for key, value in obj.items():
-                print(f"{'  ' * level}- {key}: {type(value).__name__}")
-                analyze_json(value, level + 1)
-        elif isinstance(obj, list):
-            if len(obj) > 0:
-                print(f"{'  ' * level}- List:")
-                analyze_json(obj[0], level + 1)
-        else:
-            print(f"{'  ' * level}- {type(obj).__name__}")
+    # Write investigation results to report file
+    with open(report_file, "w") as file:
+        file.write("Directory Structure:\n")
+        file.write("\n".join(dir_structure))
+        file.write("\n\nJSON File Structure:\n")
+        file.write(json.dumps(json_structure, indent=2))
 
-    print("JSON Schema:")
-    analyze_json(data)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

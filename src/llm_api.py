@@ -8,5 +8,5 @@ class LLMApi:
         self.anthropic = AnthropicApi(system_prompt)
 
     def generate(self, prompt: str, max_tokens=50, temperature=0):
-        # return self.openai.generate(prompt, max_tokens, temperature)
-        return self.anthropic.generate(prompt, max_tokens, temperature)
+        return self.openai.generate(prompt, max_tokens, temperature)
+        # return self.anthropic.generate(prompt, max_tokens, temperature)

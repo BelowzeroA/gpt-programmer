@@ -1,11 +1,18 @@
-The user set the task:
+You are managing software development for a project specified by a user.
+
+Project specification from the user:
 ```
 {{ project_specification }}
 ```
-Your manager devised a plan. You are now executing the following plan point:
+
+Step-by-step plan:
 ```
-{{ plan_point }}
+{{ step_by_step_plan }}
 ```
+{% if user_data %}
+Also consider the data that user entered on previous steps:
+{{ user_data }}
+{% endif %}
 {% if previous_step_context %}
 On the previous step, you have chosen the agent: {{ previous_step_context.agent }}.
 The task was:
@@ -18,7 +25,9 @@ The result was:
 ```
 {% endif %}
 
-Your task is to select an agent that fits best to implement the plan point and provide the result to the manager.
+You are currently at step 0: writing a short Python module that identifies the fact that the overall user project is completed.
+It can be checking a result file existence, a database record, or any other way to identify that the project is completed.
+Your task is to select an agent that fits best to implement the module and provide the result to the manager.
 
 Agents at your disposal:
 {
@@ -36,10 +45,7 @@ Agents at your disposal:
     "agent_id": "ask_user",
     "description": "if some information necessary for the task is missing, the agent can ask the user for it."
 }
-{% if user_data %}
-Also consider the data that user entered on previous steps:
-{{ user_data }}
-{% endif %}
+
 The task for the agent must be concise and general, the agent will get all the necessary information from the plan point and the user data.
 Select agent, and write a task for him in the following format:
 {

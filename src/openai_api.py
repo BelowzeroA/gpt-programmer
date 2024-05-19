@@ -13,7 +13,7 @@ openai.api_key = OPENAI_API_KEY
 
 # MODEL = "gpt-4-turbo-2024-04-09"
 # MODEL = "gpt-4-turbo"
-MODEL = "gpt-4"
+MODEL = "gpt-4o"
 
 
 class OpenAIApi:

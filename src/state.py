@@ -1,10 +1,11 @@
 class State:
-    def __init__(self, plan_point=None):
+    def __init__(self, plan_point=None, section=None):
         self.plan_point = plan_point
         self.task_for_agent = None
         self.agent = None
         self.step_result = None
         self.previous_state = None
+        self.section = section
 
     def is_terminal(self):
         return False

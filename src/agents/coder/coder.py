@@ -50,8 +50,8 @@ class CoderAgent(Agent):
         if self.environment.user_data:
             params["user_data"] = self.environment.user_data
 
-        if self.injections:
-            params["injections"] = [inj.__dict__ for inj in self.injections]
+        if self.injector:
+            params["injections"] = self.injector.inject(state)
 
         prompt = self.render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=2000)
@@ -76,8 +76,8 @@ class CoderAgent(Agent):
         if self.environment.user_data:
             params["user_data"] = self.environment.user_data
 
-        if self.injections:
-            params["injections"] = [inj.__dict__ for inj in self.injections]
+        if self.injector:
+            params["injections"] = self.injector.inject(state)
 
         prompt = self.render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=1000)
