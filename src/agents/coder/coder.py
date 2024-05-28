@@ -6,9 +6,9 @@ from agents.agent import Agent
 from jinja2 import Environment, BaseLoader
 
 from llm_api import LLMApi
+from utils.prompting import render_prompt
 
 SYSTEM_PROMPT = "You are a Python developer at a software company."
-STAGE_DIR = "stage"
 
 
 class CoderAgent(Agent):
@@ -53,7 +53,7 @@ class CoderAgent(Agent):
         if self.injector:
             params["injections"] = self.injector.inject(state)
 
-        prompt = self.render_prompt(prompt_template, params)
+        prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=2000)
         code = self.parse_response(response)
         result = {"code": code}
@@ -79,14 +79,15 @@ class CoderAgent(Agent):
         if self.injector:
             params["injections"] = self.injector.inject(state)
 
-        prompt = self.render_prompt(prompt_template, params)
+        prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=1000)
         code = self.parse_response(response)
-        result = {"code": code}
+        result = {"code": code, "error": False}
         if code:
             code_result = self.run_code(code)
             result["code_run_output"] = code_result
             if code_result and code_result.startswith("Traceback"):
+                result["error"] = True
                 result["code"] = self.highlight_error_line_in_code(code, code_result)
 
         return result
@@ -112,14 +113,14 @@ class CoderAgent(Agent):
 
     def run_code(self, code: str) -> str:
         temp_module_name = "temp_module.py"
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        project_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
-        stage_dir = os.path.join(project_dir, STAGE_DIR)
-        os.makedirs(stage_dir, exist_ok=True)
-        module_name = os.path.join(stage_dir, temp_module_name)
+        module_name = os.path.join(self.environment.stage_dir, temp_module_name)
         with open(module_name, "w") as f:
             f.write(code)
 
+        output = self.run_module(temp_module_name)
+        return output
+
+    def run_module(self, module_name: str) -> str:
         # run python interpreter
         cmd = sys.executable + " " + module_name
         p = subprocess.Popen(
@@ -127,7 +128,7 @@ class CoderAgent(Agent):
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd=stage_dir,
+            cwd=self.environment.stage_dir,
             # creationflags=CREATE_NEW_CONSOLE
         )
         stdout, stderr = p.communicate(timeout=60)
@@ -138,7 +139,7 @@ class CoderAgent(Agent):
         else:
             output = stdout
         if not output:
-            report_file = os.path.join(stage_dir, "report.txt")
+            report_file = os.path.join(self.environment.stage_dir, "report.txt")
             if os.path.exists(report_file):
                 with open(report_file, "r") as f:
                     output = f.read()
@@ -148,4 +149,3 @@ class CoderAgent(Agent):
                     os.remove(dest_filename)
                 os.rename(report_file, dest_filename)
         return output
-

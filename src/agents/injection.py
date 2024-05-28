@@ -1,7 +1,7 @@
 
 class Injection:
 
-    def __init__(self, project_specification, title, text):
-        self.project_specification = project_specification
-        self.title = title
-        self.text = text
+    def __init__(self, data: dict):
+        self.data = data
+        self.text = data["text"]
+        self.section = data["section"]

@@ -4,6 +4,9 @@ The user set the task:
 ```
 
 Based on the user's request, create a step-by-step plan to accomplish the task.
+Each step must be a valid json line and should be accompanied with a list of tags that describe the step.
+The tags should be relevant to the step and should be chosen from the following list:
+{{ possible_tags }}
 
 Follow this format for your response:
 
@@ -11,9 +14,10 @@ Follow this format for your response:
 Project Name: <Write an apt project name with no longer than 5 words>
 
 Plan:
-- [ ] Step 1: Describe the first action item needed to progress towards the objective.
-- [ ] Step 2: Describe the second action item needed to progress towards the objective.
+{ "step": 1, "action": "Describe the first action item needed to progress towards the objective.", "tags": ["tag1", "tag2", ..] }
+{ "step": 2, "action": "Describe the second action item needed to progress towards the objective.", "tags": ["tag1", "tag2", ..] }
 ```
+
 
 The plan must be as general as possible, split the whole thing into steps only when it is necessary to investigate some real-world information, like file structure, database structure etc. or get some information from the user
 

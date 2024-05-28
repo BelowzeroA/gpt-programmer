@@ -1,6 +1,11 @@
+import json
+
 from agents.agent import Agent
+from constants import POSSIBLE_TAGS
 
 from llm_api import LLMApi
+from utils.prompting import render_prompt
+
 SYSTEM_PROMPT = "You are a project manager at a software company."
 
 
@@ -12,18 +17,17 @@ class PlannerAgent(Agent):
 
     def build_master_plan(self, params):
         prompt_template = self.prompts["master-plan"]
-        if self.injections:
-            params["injections"] = [inj.__dict__ for inj in self.injections]
+        params["possible_tags"] = POSSIBLE_TAGS
+        if self.injector:
+            params["injections"] = self.injector.inject(params)
 
-        prompt = self.render_prompt(prompt_template, params)
+        prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=400)
         return self.parse_response(response)
 
-    def validate_response(self, response: str) -> bool:
-        return True
-
     def parse_response(self, response: str):
-        points_section = "points"
+        points_section = "steps"
+        # points_section = "points"
         result = {
             "project": "",
             "reply": "",
@@ -57,11 +61,14 @@ class PlannerAgent(Agent):
             elif current_section == "focus":
                 result["focus"] += " " + line
             elif current_section == points_section:
-                if line.startswith("- [ ] Step"):
-                    current_step = line.split(":")[0].strip().split(" ")[-1]
-                    result[points_section][int(current_step)] = line.split(":", 1)[1].strip()
-                elif current_step:
-                    result[points_section][int(current_step)] += "\n" + line
+                # if line.startswith("- [ ] Step"):
+                #     current_step = line.split(":")[0].strip().split(" ")[-1]
+                #     result[points_section][int(current_step)] = line.split(":", 1)[1].strip()
+                # elif current_step:
+                #     result[points_section][int(current_step)] += "\n" + line
+                if line.startswith("{"):
+                    current_step = json.loads(line)
+                    result[points_section][current_step["step"]] = current_step
             elif current_section == "summary":
                 result["summary"] += " " + line.replace("```", "")
 
@@ -69,6 +76,8 @@ class PlannerAgent(Agent):
         result["reply"] = result["reply"].strip()
         result["focus"] = result["focus"].strip()
         result["summary"] = result["summary"].strip()
+        steps = result[points_section]
+        result["points"] = {step: steps[step]["action"] for step in steps}
 
         return result
 

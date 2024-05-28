@@ -1,19 +1,17 @@
 import os
 
-from jinja2 import Environment, BaseLoader
-
 from agents.injector import Injector
 
 
 class Agent:
 
-    def __init__(self, name, full_path, logger):
+    def __init__(self, name, full_path, logger, environment):
         self.name = name
+        self.environment = environment
         self.full_path = full_path
         self.prompts = self._load_prompts()
         self.injector = self._load_injector()
         self.logger = logger
-        self.environment = None
 
     def _load_prompts(self):
         agent_dir = __file__.replace("agent.py", self.name)
@@ -34,17 +32,11 @@ class Agent:
         if not os.path.exists(filename):
             return None
 
-        injector = Injector(filename)
+        injector = Injector(filename, self.environment)
         return injector
 
     def act(self, context):
         pass
-
-    @staticmethod
-    def render_prompt(prompt_template, params: dict) -> str:
-        env = Environment(loader=BaseLoader())
-        template = env.from_string(prompt_template)
-        return template.render(**params)
 
     def __str__(self):
         return self.__class__.__name__

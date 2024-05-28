@@ -3,6 +3,7 @@ import logging
 
 from agents.agent import Agent
 from llm_api import LLMApi
+from utils.prompting import render_prompt
 
 SYSTEM_PROMPT = "You are a project manager at a software company."
 
@@ -38,7 +39,7 @@ class ManagerAgent(Agent):
         if environment.user_data:
             params["user_data"] = environment.user_data
 
-        prompt = self.render_prompt(prompt_template, params)
+        prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=400)
         answer = self.parse_response(response)
         agent_name = answer["agent"]
@@ -68,7 +69,7 @@ class ManagerAgent(Agent):
         if environment.user_data:
             params["user_data"] = environment.user_data
 
-        prompt = self.render_prompt(prompt_template, params)
+        prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=400)
         answer = self.parse_response(response)
         agent_name = answer["agent"]
@@ -99,7 +100,7 @@ class ManagerAgent(Agent):
         if environment.user_data:
             params["user_data"] = environment.user_data
 
-        prompt = self.render_prompt(prompt_template, params)
+        prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=200)
         answer = self.parse_response(response)
         return answer
