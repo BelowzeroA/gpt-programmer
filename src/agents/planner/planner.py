@@ -22,7 +22,7 @@ class PlannerAgent(Agent):
             params["injections"] = self.injector.inject(params)
 
         prompt = render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=400)
+        response = self.llm.generate(prompt, max_tokens=1000)
         return self.parse_response(response)
 
     def parse_response(self, response: str):

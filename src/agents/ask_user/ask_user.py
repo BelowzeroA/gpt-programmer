@@ -1,9 +1,10 @@
 import json
-import os
 
 from agents.agent import Agent
 from constants import USER_ADDITIONAL_DATA_FILE
 from llm_api import LLMApi
+
+from src.utils.prompting import render_prompt
 
 SYSTEM_PROMPT = "You are a project manager at a software company."
 
@@ -16,7 +17,7 @@ class AskUserAgent(Agent):
 
     def act(self, context):
         print("There is a question for you:")
-        print(self.environment.current_state.task_for_agent)
+        print(self.environment.current_state.agent_task)
         user_response = input("Enter your answer: ")
 
         user_response = user_response.replace("\\", "/")
@@ -24,11 +25,11 @@ class AskUserAgent(Agent):
         environment = self.environment
         prompt_template = self.prompts["make-variable-name"]
         params = {
-            "request": environment.current_state.task_for_agent,
+            "request": environment.current_state.agent_task,
             "response": user_response,
         }
 
-        prompt = self.render_prompt(prompt_template, params)
+        prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=20)
         variable_name = self.parse_response(response)
         self.update_additional_user_data_storage(variable_name, user_response)

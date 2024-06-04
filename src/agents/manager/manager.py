@@ -24,14 +24,14 @@ class ManagerAgent(Agent):
         environment = self.environment
         prompt_template = self.prompts["select-agent"]
         params = {
-            "task": environment.project_specification,
+            "project_specification": environment.project_specification,
             "plan_point": environment.current_state.plan_point,
         }
 
         if environment.current_state.previous_state is not None:
             previous_step_context = {
-                "agent": environment.current_state.previous_state.agent,
-                "task": environment.current_state.previous_state.task_for_agent,
+                "agent": environment.current_state.previous_state.agent_id,
+                "task": environment.current_state.previous_state.agent_task,
                 "result": environment.current_state.previous_state.step_result
             }
             params["previous_step_context"] = previous_step_context
@@ -42,13 +42,16 @@ class ManagerAgent(Agent):
         prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=400)
         answer = self.parse_response(response)
+
         agent_name = answer["agent"]
-        environment.current_state.agent = agent_name
-        environment.current_state.task_for_agent = answer["task"]
+        environment.current_state.agent_id = agent_name
+        environment.current_state.agent_params = answer["input_parameters"] if "input_parameters" in answer else None
+        environment.current_state.agent_task = answer["task"]
         self.logger.info(f"Manager: selected agent: {agent_name}")
         if agent_name in AGENT_NAME_MAPPING:
             agent_name = AGENT_NAME_MAPPING[agent_name]
-        return environment.agents[agent_name]
+        environment.current_state.agent = environment.agents[agent_name]
+        return environment.current_state.agent
 
     def select_agent_for_end_detector(self):
         environment = self.environment
@@ -61,7 +64,7 @@ class ManagerAgent(Agent):
         if environment.current_state.previous_state is not None:
             previous_step_context = {
                 "agent": environment.current_state.previous_state.agent,
-                "task": environment.current_state.previous_state.task_for_agent,
+                "task": environment.current_state.previous_state.agent_task,
                 "result": environment.current_state.previous_state.step_result
             }
             params["previous_step_context"] = previous_step_context
@@ -74,7 +77,7 @@ class ManagerAgent(Agent):
         answer = self.parse_response(response)
         agent_name = answer["agent"]
         environment.current_state.agent = agent_name
-        environment.current_state.task_for_agent = answer["task"]
+        environment.current_state.agent_task = answer["task"]
         self.logger.info(f"Manager: selected agent: {agent_name}")
         if agent_name in AGENT_NAME_MAPPING:
             agent_name = AGENT_NAME_MAPPING[agent_name]
@@ -92,7 +95,7 @@ class ManagerAgent(Agent):
         if environment.current_state is not None:
             previous_step_context = {
                 "agent": environment.current_state.agent,
-                "task": environment.current_state.task_for_agent,
+                "task": environment.current_state.agent_task,
                 "result": environment.current_state.step_result
             }
             params["previous_step_context"] = previous_step_context
@@ -105,23 +108,33 @@ class ManagerAgent(Agent):
         answer = self.parse_response(response)
         return answer
 
+    @staticmethod
+    def agents_pass_observations(current_agent, previous_agent):
+        if current_agent == previous_agent:
+            return True
+        if current_agent == "coder" and previous_agent == "file_reader":
+            return True
+        return False
+
     def select_observations(self):
         environment = self.environment
         if environment.current_state.previous_state is None:
             return None
 
         observations = []
-        agent = environment.current_state.agent
+        agent = environment.current_state.agent_id
         state = environment.current_state.previous_state
         number = 1
         while state is not None:
-            if state.agent != agent:
+            if not self.agents_pass_observations(agent, state.agent_id):
+                state = state.previous_state
                 continue
 
             observation = {
                 "id": number,
+                "agent_id": state.agent_id,
                 "agent": state.agent,
-                "task": state.task_for_agent,
+                "task": state.agent_task,
                 "result": state.step_result
             }
             observations.append(observation)
@@ -143,12 +156,12 @@ class ManagerAgent(Agent):
             "project_specification": environment.project_specification,
             "plan_point": environment.current_state.plan_point,
             "step_by_step_plan": environment.master_plan["points"],
-            "agent_task": environment.current_state.task_for_agent,
+            "agent_task": environment.current_state.agent_task,
             "agent": agent,
             "observations": observations,
         }
 
-        prompt = self.render_prompt(prompt_template, params)
+        prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=40)
         observation_ids = self.parse_response(response)
         if observation_ids:

@@ -1,0 +1,8 @@
+.vscode
+__pycache__
+
+# OSX specific
+.DS_Store
+
+# JetBrains Clion Specific
+.idea

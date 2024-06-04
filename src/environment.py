@@ -107,6 +107,7 @@ class Environment:
             self.llm,
             self.project_specification
         )
+        print(f"Project spec tags:", self.tags["project_specification"])
 
     def update_state(self, result):
         self.current_state.step_result = result
@@ -115,7 +116,7 @@ class Environment:
         if decision == "continue_current_point":
             plan_point = self.current_state.plan_point
             new_state = State(plan_point=plan_point)
-            new_state.task_for_agent = self.current_state.task_for_agent
+            new_state.agent_task = self.current_state.agent_task
             new_state.agent = self.current_state.agent
             new_state.previous_state = self.current_state
             self.current_state = new_state
@@ -131,7 +132,7 @@ class Environment:
                 next_point_key = plan_point + 1
                 plan_point = self.master_plan["points"][next_point_key]
             new_state = State(plan_point=plan_point, section=MAIN_SECTION)
-            new_state.task_for_agent = plan_point
+            new_state.agent_task = plan_point
             new_state.previous_state = self.current_state
 
             self.current_state = new_state
@@ -159,7 +160,8 @@ class Environment:
                 result = self.coder.generate_end_detector()
             else:
                 result = agent.act(step_context)
-            if not result.get("error"):
+
+            if isinstance(result, dict) and not result.get("error"):
                 module_name = os.path.join(self.stage_dir, "end_detector.py")
                 with open(module_name, "w") as f:
                     f.write(result["code"])

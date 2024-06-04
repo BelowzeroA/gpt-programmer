@@ -16,5 +16,8 @@ POSSIBLE_TAGS = [
     "xml",
     "structure",
     "investigate",
-    "file"
+    "file",
+    "import",
+    "class",
+    "module",
 ]

@@ -20,11 +20,18 @@ The result was:
 
 Your task is to select an agent that fits best to implement the plan point and provide the result to the manager.
 
+Some agents have mandatory input parameters. If you choose such an agent, make sure to provide the necessary input parameters.If you don't have any of these parameters, you can ask the user for them.
+
 Agents at your disposal:
 {
     "name": "Python coder",
     "agent_id": "coder",
     "description": "A Python coder is an agent who can write in Python modules, execute them and debug them."
+     "input_parameters": {
+        "should_run_code": "bool", #True if the code should be executed to obtain results, False otherwise
+        "module_should_be_saved": "bool", #True if the generated code should be saved as a module, False otherwise
+        "module_save_path": "string" #path to save the module
+    }
 },
 {
     "name": "Planner",
@@ -35,6 +42,14 @@ Agents at your disposal:
     "name": "Ask user",
     "agent_id": "ask_user",
     "description": "if some information necessary for the task is missing, the agent can ask the user for it."
+},
+{
+    "name": "File reader",
+    "agent_id": "file_reader",
+    "description": "the agent can read a specified file and return its content on the next step."
+    "input_parameters": {
+        "file_path": "string"
+    }
 }
 {% if user_data %}
 Also consider the data that user entered on previous steps:
@@ -44,5 +59,6 @@ The task for the agent must be concise and general, the agent will get all the n
 Select agent, and write a task for him in the following format:
 {
     "agent": <agent_id>,
-    "task": <task>
+    "task": <task>,
+    "input_parameters": <input_parameters>
 }

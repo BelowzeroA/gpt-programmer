@@ -2,6 +2,38 @@ section,project_specification,project_specification_tags,plan_point,plan_point_t
 end_detector,"Write a parser of dataset in json format. The dataset consists of multiple files in a directory. Each file contains some code in multiple languages. The structure of the files is unknown, you need to determine it first.
 The task is to write a python module that extracts all code in java and put it in a single csv file with the following columns: repo_name, full_path, content.
 The end result is a python module that implements the above task and stores the result in file ""dataset.csv"".","parsing, json, code, java, csv, columns",,,,"Check if the resulting file exists. Check if it has necessary columns. If necessary, check if the file has at least one row"
+end_detector,"Rebuild a program module and create a new structure of three modules.
+Current state: 
+module inference_comm.py has 
+1) logic of identifying  narratives with communication
+2) logic of identifying  narratives with communication and no names
+3) boilerplate stuff of manipulating incoming data
+
+The overall goal is to make three modules with three classes instead of one:
+comm_detector.py - class VagueNarrativeCommunicationModel that identifies narratives with communication 
+and all boilerplate from inference_comm.py. Names must not be considered in this module
+no_names_detector.py - class VagueNarrativeNoNamesModel inherited from VagueNarrativeCommunicationModel that 
+identifies narratives with communication and no names
+no_subject_detector.py - class VagueNarrativeNoSubjectModel inherited from VagueNarrativeCommunicationModel that
+identifies narratives with communication and no subject. ""No subject"" means that the narrative does not contain 
+snippets "" re "", "" re: "" or "" regarding ""
+No boilerplate should be in these two inherited classes, like predict() method, etc.","class, module",,,,"To identify if a class is implemented in Python module, don’t import it, just do a regex search"
+end_detector,"Rebuild a program module and create a new structure of three modules.
+Current state: 
+module inference_comm.py has 
+1) logic of identifying  narratives with communication
+2) logic of identifying  narratives with communication and no names
+3) boilerplate stuff of manipulating incoming data
+
+The overall goal is to make three modules with three classes instead of one:
+comm_detector.py - class VagueNarrativeCommunicationModel that identifies narratives with communication 
+and all boilerplate from inference_comm.py. Names must not be considered in this module
+no_names_detector.py - class VagueNarrativeNoNamesModel inherited from VagueNarrativeCommunicationModel that 
+identifies narratives with communication and no names
+no_subject_detector.py - class VagueNarrativeNoSubjectModel inherited from VagueNarrativeCommunicationModel that
+identifies narratives with communication and no subject. ""No subject"" means that the narrative does not contain 
+snippets "" re "", "" re: "" or "" regarding ""
+No boilerplate should be in these two inherited classes, like predict() method, etc.","class, module",,,,"When checking the file existence, make sure you know the full path to the file"
 main,,"parsing, json, code, java, csv, columns",Identify the structure of the JSON files in the dataset directory.,"json, structure, investigate, file",investigation,"To investigate something, store the result of the investigation in file ""report.txt"" so that the next AI agent would be able to continue the work"
 main,,"parsing, json, code, java, csv, columns",Identify the structure of the JSON files in the dataset directory.,"json, structure, investigate, file",json investigation,"To investigate json file structure, collect keys and values from the the first three levels of the structure and store them in json format. If a value is of string type, output first 50 chars. If an element is a list, dive in and discover the structure of the first element. The output might look like
 JSON File Structure:

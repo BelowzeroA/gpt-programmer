@@ -4,22 +4,38 @@
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
-          <list size="12">
-            <item index="0" class="java.lang.String" itemvalue="tqdm" />
-            <item index="1" class="java.lang.String" itemvalue="protobuf" />
-            <item index="2" class="java.lang.String" itemvalue="scipy" />
-            <item index="3" class="java.lang.String" itemvalue="sentencepiece" />
-            <item index="4" class="java.lang.String" itemvalue="torch" />
-            <item index="5" class="java.lang.String" itemvalue="trl" />
-            <item index="6" class="java.lang.String" itemvalue="selenium" />
-            <item index="7" class="java.lang.String" itemvalue="google-search-results" />
-            <item index="8" class="java.lang.String" itemvalue="db-sqlite3" />
-            <item index="9" class="java.lang.String" itemvalue="aiogram" />
-            <item index="10" class="java.lang.String" itemvalue="sqlalchemy" />
-            <item index="11" class="java.lang.String" itemvalue="openpyxl" />
+          <list size="27">
+            <item index="0" class="java.lang.String" itemvalue="gensim" />
+            <item index="1" class="java.lang.String" itemvalue="transformers" />
+            <item index="2" class="java.lang.String" itemvalue="scikit-learn" />
+            <item index="3" class="java.lang.String" itemvalue="simpletransformers" />
+            <item index="4" class="java.lang.String" itemvalue="nltk" />
+            <item index="5" class="java.lang.String" itemvalue="natasha" />
+            <item index="6" class="java.lang.String" itemvalue="yargy" />
+            <item index="7" class="java.lang.String" itemvalue="torch" />
+            <item index="8" class="java.lang.String" itemvalue="numpy" />
+            <item index="9" class="java.lang.String" itemvalue="requests" />
+            <item index="10" class="java.lang.String" itemvalue="pqkmeans" />
+            <item index="11" class="java.lang.String" itemvalue="psutil" />
+            <item index="12" class="java.lang.String" itemvalue="pandas" />
+            <item index="13" class="java.lang.String" itemvalue="tqdm" />
+            <item index="14" class="java.lang.String" itemvalue="pymorphy2" />
+            <item index="15" class="java.lang.String" itemvalue="tensorflow" />
+            <item index="16" class="java.lang.String" itemvalue="spacy" />
+            <item index="17" class="java.lang.String" itemvalue="translators" />
+            <item index="18" class="java.lang.String" itemvalue="typing" />
+            <item index="19" class="java.lang.String" itemvalue="razdel" />
+            <item index="20" class="java.lang.String" itemvalue="flask" />
+            <item index="21" class="java.lang.String" itemvalue="dash" />
+            <item index="22" class="java.lang.String" itemvalue="pymystem3" />
+            <item index="23" class="java.lang.String" itemvalue="openai" />
+            <item index="24" class="java.lang.String" itemvalue="db-sqlite3" />
+            <item index="25" class="java.lang.String" itemvalue="sqlalchemy" />
+            <item index="26" class="java.lang.String" itemvalue="openpyxl" />
           </list>
         </value>
       </option>
     </inspection_tool>
+    <inspection_tool class="ReassignedToPlainText" enabled="false" level="WARNING" enabled_by_default="false" />
   </profile>
 </component>

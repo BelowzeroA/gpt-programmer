@@ -1,1 +1,4 @@
-{"dataset_directory": "c:/Work/projects/data/"}
+{
+  "project_completion_criteria": "just make sure all three files exist and have respected classes inside",
+  "inference_comm_file_path": "c:/Work/projects/zero/verify-fm-backend/be/inference_service/pipelines/vague_narrative/inference_comm.py"
+}

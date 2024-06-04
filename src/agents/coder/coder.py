@@ -27,10 +27,13 @@ class CoderAgent(Agent):
             response = response[:-3].strip()
         return response
 
-    def format_observation(self, observation: dict) -> str:
+    @staticmethod
+    def format_observation(observation: dict) -> str:
+        observation_data = observation["result"]
         result = "Code:\n"
-        result += "```python\n" + observation["code"] + "\n```\n"
-        result += "Code run output:\n---\n" + observation["code_run_output"] + "\n---\n"
+        result += "```python\n" + observation_data["code"] + "\n```\n"
+        if "code_run_output" in observation_data:
+            result += "Code run output:\n---\n" + observation_data["code_run_output"] + "\n---\n"
         return result
 
     def act(self, context):
@@ -40,12 +43,9 @@ class CoderAgent(Agent):
             "project_specification": self.environment.project_specification,
             "step_by_step_plan": self.environment.master_plan["points"],
             "current_step": state.plan_point,
-            "task_clarification": state.task_for_agent,
+            "task_clarification": state.agent_task,
+            "observations": self.build_format_observations(context)
         }
-        if context["observations"]:
-            params["observations"] = context["observations"]
-            for observation in params["observations"]:
-                observation["result"] = self.format_observation(observation["result"])
 
         if self.environment.user_data:
             params["user_data"] = self.environment.user_data
@@ -56,14 +56,37 @@ class CoderAgent(Agent):
         prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(prompt, max_tokens=2000)
         code = self.parse_response(response)
+
+        result = self.handle_code_result(code, state.agent_params)
+
+        return result
+
+    def handle_code_result(self, code, agent_params: dict):
         result = {"code": code}
-        if code:
+
+        if agent_params["should_run_code"] and code:
             code_result = self.run_code(code)
             result["code_run_output"] = code_result
             if code_result and code_result.startswith("Traceback"):
                 result["code"] = self.highlight_error_line_in_code(code, code_result)
-
+        elif agent_params["module_should_be_saved"]:
+            module_name = agent_params["module_save_path"]
+            with open(module_name, "w") as f:
+                f.write(code)
+            self.logger.info(f"Module saved to {module_name}")
+            result["module_saved"] = True
+            result["module_name"] = os.path.basename(module_name)
+            result["module_path"] = module_name
         return result
+
+    def build_format_observations(self, context) -> dict | None:
+        if not context["observations"]:
+            return None
+        observations = context["observations"]
+        for observation in observations:
+            agent = observation["agent"]
+            observation["result"] = agent.format_observation(observation)
+        return observations
 
     def generate_end_detector(self):
         prompt_template = self.prompts["end-detector"]
@@ -86,11 +109,18 @@ class CoderAgent(Agent):
         if code:
             code_result = self.run_code(code)
             result["code_run_output"] = code_result
-            if code_result and code_result.startswith("Traceback"):
+            if code_result and self.code_has_error(code_result):
                 result["error"] = True
                 result["code"] = self.highlight_error_line_in_code(code, code_result)
 
         return result
+
+    def code_has_error(self, code_result: str) -> bool:
+        if code_result and code_result.startswith("Traceback"):
+            return True
+        if "SyntaxError" in code_result:
+            return True
+        return False
 
     def highlight_error_line_in_code(self, code: str, error) -> str:
         last_error_line_number = None
