@@ -1,7 +1,7 @@
 import json
 import os
 
-from constants import USER_ADDITIONAL_DATA_FILE
+from constants import USER_ADDITIONAL_DATA_FILE, MAX_EXECUTION_STEPS
 from file_utils import Utils
 from base_plugin import BasePlugin
 from llm_api import LLMApi
@@ -20,7 +20,6 @@ STAGE_DIR = "stage"
 class Environment:
     def __init__(self):
         self.logger = logger
-        self.plugins = self.load_plugins()
         self.planner = None
         self.manager = None
         self.coder = None
@@ -70,15 +69,6 @@ class Environment:
         os.makedirs(stage_dir, exist_ok=True)
         return stage_dir
 
-    def load_plugins(self):
-        # Collect all subclasses of BasePlugin
-        # For each plugin, create an instance and store it in a dict
-        result = []
-        for plugin_class in BasePlugin.__subclasses__():
-            plugin = plugin_class(self.logger)
-            result.append(plugin)
-        return result
-
     def load_user_data(self):
         if os.path.exists(USER_ADDITIONAL_DATA_FILE):
             with open(USER_ADDITIONAL_DATA_FILE, "r") as file:
@@ -89,8 +79,8 @@ class Environment:
 
     def run(self, task):
         self.project_specification = task
-        self.master_plan = self.build_master_plan(task)
         self.extract_tags()
+        self.master_plan = self.build_master_plan(task)
         self.current_state = State(plan_point="Making an end detector", section="end_detector")
         self.end_detector = self.build_end_detector()
         if not self.end_detector:
@@ -124,14 +114,30 @@ class Environment:
             next_point = continuation["next_point"]
             if next_point in self.master_plan["points"]:
                 plan_point = self.master_plan["points"][next_point]
+                next_point_key = next_point
             else:
                 for key, value in self.master_plan["points"].items():
                     if value == self.current_state.plan_point:
                         plan_point = key
                         break
                 next_point_key = plan_point + 1
-                plan_point = self.master_plan["points"][next_point_key]
-            new_state = State(plan_point=plan_point, section=MAIN_SECTION)
+
+                if next_point_key not in self.master_plan["points"]:
+                    self.logger.info("No next point found")
+                    plan_point = None
+
+                else:
+                    plan_point = self.master_plan["points"][next_point_key]
+
+            new_state = State(
+                plan_point=plan_point,
+                section=MAIN_SECTION,
+                plan_step=next_point_key
+            )
+
+            if not plan_point:
+                new_state.final = True
+
             new_state.agent_task = plan_point
             new_state.previous_state = self.current_state
 
@@ -171,6 +177,7 @@ class Environment:
 
     def main_loop(self):
         loop_is_running = False
+        step_no = 1
         while True:
             end = self.check_end()
             if end:
@@ -180,11 +187,26 @@ class Environment:
                     self.logger.info("Task completed before starting the loop")
                 break
             loop_is_running = True
+
             self.execute_step()
+
+            step_no += 1
+            if step_no > MAX_EXECUTION_STEPS:
+                self.logger.info(f"Task execution loop reached the limit of {MAX_EXECUTION_STEPS} steps")
+                break
 
     def check_end(self):
         # Run the end_detector module and check its output
+        end_detector_result = self.end_detector_result()
+        state_is_final = self.current_state.final
+        if not end_detector_result and state_is_final:
+            self.logger.info("We completed all plan points; "
+                             "however End detector is not able to detect the end of the task")
+        return end_detector_result or state_is_final
+
+    def end_detector_result(self):
+        # Run the end_detector module and check its output
         output = self.coder.run_module(self.end_detector)
-        if output and "completed" in output.lower():
+        if output and "completed" in output.lower() and not "not completed" in output.lower():
             return True
         return False

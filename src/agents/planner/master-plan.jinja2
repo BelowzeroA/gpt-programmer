@@ -22,7 +22,7 @@ Plan:
 The plan must be as general as possible, split the whole thing into steps only when it is necessary to investigate some real-world information, like file structure, database structure etc. or get some information from the user
 
 Important notes:
-- Have in mind that the plant steps are being executed by AI agents: python coder-interpreter, manager, bash interpreter. Building the plan do not specify agents' for each step, it will be done later by the manager.
+- Have in mind that the plan steps are being executed by AI agents: python coder-interpreter, manager, bash interpreter. Building the plan do not specify agents' for each step, it will be done later by the manager.
 - If an agent is able to perform an action without contacting other agents or the manager for clarification, this action must correspond to a single step of the plan.
 - if some consecutive steps can be implemented in a single python module, merge them into a single step like this:
 Step N: Develop a  Python module that:
@@ -30,6 +30,10 @@ Step N: Develop a  Python module that:
           - module action 2.
 ...
           - module action M.
+{% if user_data %}
+Also consider the data that user entered on previous steps:
+{{ user_data }}
+{% endif %}
 {% for injection in injections %}
 - {{ injection.text }}
 {% endfor %}

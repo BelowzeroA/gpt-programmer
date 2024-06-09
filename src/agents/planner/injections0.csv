@@ -1,3 +1,0 @@
-title,text
-investigation,"To investigate something, store the result of the investigation in file ""report.txt"" so that the next AI agent would be able to continue the work"
-json investigation,"To investigate json file structure, collect keys and types of values from the the first three levels of the structure and store them in json format. If an element is a list, dive in and discover the structure of the first element"

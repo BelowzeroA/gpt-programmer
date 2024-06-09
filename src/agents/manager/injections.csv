@@ -1,0 +1,2 @@
+section,project_specification,project_specification_tags,plan_point,plan_point_tags,title,text
+main,,"parsing, json, code, java, csv, columns",Identify the structure of the JSON files in the dataset directory.,"json, structure, investigate, file",json investigation,To investigate json file structure select Python coder

@@ -1,2 +1,0 @@
-from plugins.gpt_plugin import GPTPlugin
-from plugins.python_interpreter import PythonInterpreterPlugin

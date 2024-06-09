@@ -29,7 +29,7 @@ class FileReaderAgent(Agent):
         else:
             file_path = current_state.agent_params["file_path"]
             try:
-                with open(file_path, "r") as file:
+                with open(file_path, "r", encoding="utf8") as file:
                     result = file.read()
             except FileNotFoundError:
                 result = f"File not found: {file_path}"
@@ -39,5 +39,6 @@ class FileReaderAgent(Agent):
 
     @staticmethod
     def format_observation(observation: dict) -> str:
-        result = "```python\n" + observation["result"] + "\n```\n"
+        # result = "```python\n" + observation["result"] + "\n```\n"
+        result = observation["result"] + "\n"
         return result

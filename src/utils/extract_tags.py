@@ -16,7 +16,10 @@ def extract_tags_from_project_specification(llm, project_specification: str) -> 
     }
 
     prompt = render_prompt(prompt_template, params)
-    response = llm.generate(prompt, max_tokens=100)
+    response = llm.generate(
+        prompt=prompt,
+        max_tokens=100
+    )
     tags = parse_response(response)
 
     return tags

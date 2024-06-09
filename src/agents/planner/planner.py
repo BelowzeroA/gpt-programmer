@@ -2,8 +2,10 @@ import json
 
 from agents.agent import Agent
 from constants import POSSIBLE_TAGS
+from environment import MAIN_SECTION
 
 from llm_api import LLMApi
+from state import State
 from utils.prompting import render_prompt
 
 SYSTEM_PROMPT = "You are a project manager at a software company."
@@ -19,10 +21,21 @@ class PlannerAgent(Agent):
         prompt_template = self.prompts["master-plan"]
         params["possible_tags"] = POSSIBLE_TAGS
         if self.injector:
-            params["injections"] = self.injector.inject(params)
+            dummy_state = State(
+                plan_point=None,
+                section=MAIN_SECTION,
+                plan_step=0
+            )
+            params["injections"] = self.injector.inject(dummy_state)
+
+        if self.environment.user_data:
+            params["user_data"] = self.environment.user_data
 
         prompt = render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=1000)
+        response = self.llm.generate(
+            prompt=prompt,
+            max_tokens=1000
+        )
         return self.parse_response(response)
 
     def parse_response(self, response: str):

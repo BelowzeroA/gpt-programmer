@@ -39,8 +39,16 @@ class ManagerAgent(Agent):
         if environment.user_data:
             params["user_data"] = environment.user_data
 
+        if self.injector:
+            params["injections"] = self.injector.inject(environment.current_state)
+
         prompt = render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=400)
+        response = self.llm.generate(
+            prompt=prompt,
+            max_tokens=400,
+            api="openai"
+        )
+
         answer = self.parse_response(response)
 
         agent_name = answer["agent"]
@@ -73,7 +81,11 @@ class ManagerAgent(Agent):
             params["user_data"] = environment.user_data
 
         prompt = render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=400)
+        response = self.llm.generate(
+            prompt=prompt,
+            max_tokens=400,
+            api="openai"
+        )
         answer = self.parse_response(response)
         agent_name = answer["agent"]
         environment.current_state.agent = agent_name
@@ -104,7 +116,10 @@ class ManagerAgent(Agent):
             params["user_data"] = environment.user_data
 
         prompt = render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=200)
+        response = self.llm.generate(
+            prompt=prompt,
+            max_tokens=200
+        )
         answer = self.parse_response(response)
         return answer
 
@@ -162,15 +177,16 @@ class ManagerAgent(Agent):
         }
 
         prompt = render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=40)
+        response = self.llm.generate(
+            prompt=prompt,
+            max_tokens=40
+        )
+
         observation_ids = self.parse_response(response)
         if observation_ids:
             observation_ids = [int(obs_id) for obs_id in observation_ids]
         selected_observations = [obs for obs in observations if obs["id"] in observation_ids]
         return selected_observations
-
-    def validate_response(self, response: str) -> bool:
-        return True
 
     def parse_response(self, response: str):
         if response.startswith("\""):
@@ -200,7 +216,12 @@ class ManagerAgent(Agent):
                 json_lines.append(line)
         json_response = "\n".join(json_lines)
         json_response = json_response.replace("\n", ' ')
-        answer = json.loads(json_response)
+        json_response = json_response.replace(" False", "false").replace(" True", "true")
+        try:
+            answer = json.loads(json_response)
+        except json.JSONDecodeError:
+            logging.error(f"Failed to parse response: {response}")
+            return None
         return answer
 
 

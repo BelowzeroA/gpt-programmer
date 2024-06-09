@@ -7,6 +7,7 @@ class State:
         self.agent = None
         self.step_result = None
         self.previous_state = None
+        self.final = False
         self.section = section
         self.plan_step = plan_step
 

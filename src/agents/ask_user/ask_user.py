@@ -30,7 +30,10 @@ class AskUserAgent(Agent):
         }
 
         prompt = render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=20)
+        response = self.llm.generate(
+            prompt=prompt,
+            max_tokens=20
+        )
         variable_name = self.parse_response(response)
         self.update_additional_user_data_storage(variable_name, user_response)
 

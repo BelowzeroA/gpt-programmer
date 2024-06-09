@@ -1,0 +1,3 @@
+section,project_specification,project_specification_tags,plan_point,plan_point_tags,title,text
+main,"rewrite a JS script to Python. No running or testing is required. 
+Save the result to a .py file in the same directory.","module, convert-from-one-language-to-another, file",,,,"If the task is simple conversion from one language to another just read the file and then convert it, no analysys required"

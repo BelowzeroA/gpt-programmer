@@ -54,7 +54,10 @@ class CoderAgent(Agent):
             params["injections"] = self.injector.inject(state)
 
         prompt = render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=2000)
+        response = self.llm.generate(
+            prompt=prompt,
+            max_tokens=2000
+        )
         code = self.parse_response(response)
 
         result = self.handle_code_result(code, state.agent_params)
@@ -64,12 +67,8 @@ class CoderAgent(Agent):
     def handle_code_result(self, code, agent_params: dict):
         result = {"code": code}
 
-        if agent_params["should_run_code"] and code:
-            code_result = self.run_code(code)
-            result["code_run_output"] = code_result
-            if code_result and code_result.startswith("Traceback"):
-                result["code"] = self.highlight_error_line_in_code(code, code_result)
-        elif agent_params["module_should_be_saved"]:
+        module_name = None
+        if agent_params["module_should_be_saved"]:
             module_name = agent_params["module_save_path"]
             with open(module_name, "w") as f:
                 f.write(code)
@@ -77,6 +76,16 @@ class CoderAgent(Agent):
             result["module_saved"] = True
             result["module_name"] = os.path.basename(module_name)
             result["module_path"] = module_name
+
+        if agent_params["should_run_code"] and code:
+            if module_name:
+                code_result = self.run_module(module_name)
+            else:
+                code_result = self.run_code(code)
+            result["code_run_output"] = code_result
+            if code_result and code_result.startswith("Traceback"):
+                result["code"] = self.highlight_error_line_in_code(code, code_result)
+
         return result
 
     def build_format_observations(self, context) -> dict | None:
@@ -103,7 +112,10 @@ class CoderAgent(Agent):
             params["injections"] = self.injector.inject(state)
 
         prompt = render_prompt(prompt_template, params)
-        response = self.llm.generate(prompt, max_tokens=1000)
+        response = self.llm.generate(
+            prompt=prompt,
+            max_tokens=1000
+        )
         code = self.parse_response(response)
         result = {"code": code, "error": False}
         if code:
