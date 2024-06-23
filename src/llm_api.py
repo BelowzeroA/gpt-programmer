@@ -2,6 +2,7 @@ from anthropic_api import AnthropicApi
 from openai_api import OpenAIApi
 
 DEFAULT_API = "anthropic"
+# DEFAULT_API = "openai"
 
 
 class LLMApi:

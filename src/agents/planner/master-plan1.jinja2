@@ -1,0 +1,42 @@
+Your task is to make a step by step plan to accomplish a task.
+User specified the following task:
+```
+{{ task }}
+```
+
+Based on the user's request, create a step-by-step plan to accomplish the task.
+Each step must be a valid json line and should be accompanied with a list of tags that describe the step.
+The tags should be relevant to the step and should be chosen from the following list:
+{{ possible_tags }}
+
+Follow this format for your response:
+
+```
+Project Name: <Write an apt project name with no longer than 5 words>
+
+Plan:
+{ "step": 1, "action": "Describe the first action item needed to progress towards the objective.", "tags": ["tag1", "tag2", ..] }
+{ "step": 2, "action": "Describe the second action item needed to progress towards the objective.", "tags": ["tag1", "tag2", ..] }
+```
+
+
+The plan must be as general as possible, split the whole thing into steps only when it is necessary to investigate some real-world information, like file structure, database structure etc. or get some information from the user
+
+Important notes:
+- Have in mind that the plan steps are being executed by AI agents: python coder-interpreter, manager, bash interpreter. Building the plan do not specify agents' for each step, it will be done later by the manager.
+- If an agent is able to perform an action without contacting other agents or the manager for clarification, this action must correspond to a single step of the plan.
+- if some consecutive steps can be implemented in a single python module, merge them into a single step like this:
+Step N: Develop a  Python module that:
+          - module action 1
+          - module action 2.
+...
+          - module action M.
+
+{% if user_data %}
+Also consider the data that user entered on previous steps:
+{{ user_data }}
+{% endif %}
+{% for injection in injections %}
+- {{ injection.text }}
+{% endfor %}
+Your response should only be verbatim in the format inside the code block. Any other response format will be rejected.

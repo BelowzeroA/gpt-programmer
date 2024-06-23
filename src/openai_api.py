@@ -35,6 +35,7 @@ class OpenAIApi:
                     model=MODEL,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    seed=123,
                     messages=[
                         {"role": "system", "content": self.system_prompt},
                         {"role": "user", "content": prompt}

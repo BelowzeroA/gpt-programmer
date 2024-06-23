@@ -4,8 +4,9 @@ import anthropic
 
 api_token = "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"
 
-MODEL = "claude-3-opus-20240229"
+# MODEL = "claude-3-opus-20240229"
 # MODEL = "claude-3-sonnet-20240229"
+MODEL = "claude-3-5-sonnet-20240620"
 
 
 class AnthropicApi:

@@ -12,6 +12,7 @@ class Agent:
         self.prompts = self._load_prompts()
         self.injector = self._load_injector()
         self.logger = logger
+        self.callback = None
 
     def _load_prompts(self):
         agent_dir = __file__.replace("agent.py", self.name)

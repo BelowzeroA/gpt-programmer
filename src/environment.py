@@ -3,7 +3,6 @@ import os
 
 from constants import USER_ADDITIONAL_DATA_FILE, MAX_EXECUTION_STEPS
 from file_utils import Utils
-from base_plugin import BasePlugin
 from llm_api import LLMApi
 from logger import Logger
 from state import State
@@ -23,6 +22,7 @@ class Environment:
         self.planner = None
         self.manager = None
         self.coder = None
+        self.ask_user = None
         self.tags = {}
         self.llm = LLMApi(self.logger, SYSTEM_PROMPT)
         self.end_detector = None
@@ -32,6 +32,15 @@ class Environment:
         self.project_specification = None
         self.user_data = self.load_user_data()
         self.stage_dir = self._ensure_stage_dir()
+        self.callbacks = {}
+        self.dialog_mode = False
+
+    def set_callback(self, name, callback):
+        self.callbacks[name] = callback
+        if name == "logging":
+            self.logger.callback = callback
+        if name == "ask_user":
+            self.ask_user.callback = callback
 
     @staticmethod
     def load_agent(name, full_path, logger, environment):
@@ -58,6 +67,8 @@ class Environment:
                         self.manager = agent
                     elif agent.name == "coder":
                         self.coder = agent
+                    elif agent.name == "ask_user":
+                        self.ask_user = agent
                     agents[agent.name] = agent
         return agents
 
@@ -83,6 +94,7 @@ class Environment:
         self.master_plan = self.build_master_plan(task)
         self.current_state = State(plan_point="Making an end detector", section="end_detector")
         self.end_detector = self.build_end_detector()
+        # self.logger.info(f"Finish: {self.end_detector}")
         if not self.end_detector:
             return "Failed to build end detector"
         self.current_state = State(
@@ -91,6 +103,41 @@ class Environment:
             section="main"
         )
         self.main_loop()
+
+    def run_dialog(self, input_data: str | dict):
+        self.dialog_mode = True
+        if isinstance(input_data, str):
+            result = self.init_dialog(input_data)
+            if result:
+                return result
+        else:
+            if input_data["init_state"] == "user_response":
+                result = self.ask_user.continue_with_user_response(input_data["response"])
+                self.update_state(result)
+            elif input_data["init_state"] == "new_phase":
+                self.init_dialog(input_data["response"])
+
+        return self.main_loop()
+
+    def init_dialog(self, input_data: str):
+        if not self.project_specification:
+            self.project_specification = input_data
+        else:
+            self.project_specification = self._format_project_specification(self.project_specification, input_data)
+        self.extract_tags()
+        self.master_plan = self.build_master_plan(input_data)
+        saved_state = self.current_state
+        self.current_state = State(plan_point="Making an end detector", section="end_detector")
+        self.end_detector = self.build_end_detector()
+        if not self.end_detector:
+            return {"action": "finish", "message": "Failed to build end detector"}
+        self.current_state = State(
+            plan_step=1,
+            plan_point=self.master_plan["points"][1],
+            section="main"
+        )
+        self.current_state.previous_state = saved_state
+        return None
 
     def extract_tags(self):
         self.tags["project_specification"] = extract_tags_from_project_specification(
@@ -148,8 +195,12 @@ class Environment:
         agent = self.manager.select_agent()
         step_context["observations"] = self.manager.select_observations()
 
+        if agent.name == "ask_user" and self.dialog_mode:
+            return {"action": "ask_user", "message": self.current_state.agent_task}
+
         result = agent.act(step_context)
         self.update_state(result)
+        return None
 
     def build_master_plan(self, task):
         params = {"task": task}
@@ -178,9 +229,11 @@ class Environment:
     def main_loop(self):
         loop_is_running = False
         step_no = 1
+        result = {"message": None, "action": "finish"}
         while True:
-            end = self.check_end()
-            if end:
+            end_state = self.check_end()
+            if end_state["result"]:
+                result["message"] = end_state["message"]
                 if loop_is_running:
                     self.logger.info("Task completed")
                 else:
@@ -188,21 +241,27 @@ class Environment:
                 break
             loop_is_running = True
 
-            self.execute_step()
+            dialog_state = self.execute_step()
+            if dialog_state:
+                return dialog_state
 
             step_no += 1
             if step_no > MAX_EXECUTION_STEPS:
-                self.logger.info(f"Task execution loop reached the limit of {MAX_EXECUTION_STEPS} steps")
+                result["message"] = f"Task execution loop reached the limit of {MAX_EXECUTION_STEPS} steps"
+                self.logger.info(result["message"])
                 break
+        return result
 
     def check_end(self):
+        message = "The End detector found the end of the task"
         # Run the end_detector module and check its output
         end_detector_result = self.end_detector_result()
         state_is_final = self.current_state.final
         if not end_detector_result and state_is_final:
-            self.logger.info("We completed all plan points; "
-                             "however End detector is not able to detect the end of the task")
-        return end_detector_result or state_is_final
+            message = "We completed all plan points; however the End detector is not able to detect the end of the task"
+            self.logger.info(message)
+        result = end_detector_result or state_is_final
+        return {"message": message, "result": result}
 
     def end_detector_result(self):
         # Run the end_detector module and check its output
@@ -210,3 +269,8 @@ class Environment:
         if output and "completed" in output.lower() and not "not completed" in output.lower():
             return True
         return False
+
+    @staticmethod
+    def _format_project_specification(project_specification, input_data):
+        spec = f"The previous task was stated as follows: \n---\n{project_specification}\n---\n\n{input_data}"
+        return spec

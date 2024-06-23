@@ -4,7 +4,7 @@ from agents.agent import Agent
 from constants import USER_ADDITIONAL_DATA_FILE
 from llm_api import LLMApi
 
-from src.utils.prompting import render_prompt
+from utils.prompting import render_prompt
 
 SYSTEM_PROMPT = "You are a project manager at a software company."
 
@@ -20,6 +20,9 @@ class AskUserAgent(Agent):
         print(self.environment.current_state.agent_task)
         user_response = input("Enter your answer: ")
 
+        return self.continue_with_user_response(user_response)
+
+    def continue_with_user_response(self, user_response):
         user_response = user_response.replace("\\", "/")
 
         environment = self.environment

@@ -64,6 +64,14 @@ class CoderAgent(Agent):
 
         return result
 
+    @staticmethod
+    def code_is_runnable(code: str) -> bool:
+        if "input(" in code:
+            return False
+        if "def main(" not in code:
+            return False
+        return True
+
     def handle_code_result(self, code, agent_params: dict):
         result = {"code": code}
 
@@ -77,7 +85,7 @@ class CoderAgent(Agent):
             result["module_name"] = os.path.basename(module_name)
             result["module_path"] = module_name
 
-        if agent_params["should_run_code"] and code:
+        if agent_params["should_run_code"] and code and self.code_is_runnable(code):
             if module_name:
                 code_result = self.run_module(module_name)
             else:
@@ -165,21 +173,25 @@ class CoderAgent(Agent):
     def run_module(self, module_name: str) -> str:
         # run python interpreter
         cmd = sys.executable + " " + module_name
-        p = subprocess.Popen(
-            cmd,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=self.environment.stage_dir,
-            # creationflags=CREATE_NEW_CONSOLE
-        )
-        stdout, stderr = p.communicate(timeout=60)
-        stdout = stdout.decode("utf-8")
-        stderr = stderr.decode("utf-8")
-        if not stdout and stderr:
-            output = stderr
-        else:
-            output = stdout
+        try:
+            p = subprocess.Popen(
+                cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=self.environment.stage_dir,
+                # creationflags=CREATE_NEW_CONSOLE
+            )
+            stdout, stderr = p.communicate(timeout=60)
+            stdout = stdout.decode("utf-8")
+            stderr = stderr.decode("utf-8")
+            if not stdout and stderr:
+                output = stderr
+            else:
+                output = stdout
+        except Exception as e:
+            output = f"{e}"
+
         if not output:
             report_file = os.path.join(self.environment.stage_dir, "report.txt")
             if os.path.exists(report_file):

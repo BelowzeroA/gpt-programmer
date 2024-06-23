@@ -9,7 +9,7 @@ utils = Utils()
 
 class Logger:
 
-    def __init__(self, filename):
+    def __init__(self, filename, callback=None):
         self.log_dir = os.path.dirname(filename)
         # logging.basicConfig(filename=filename, filemode='w', level=logging.INFO,)
         file_handler = logging.FileHandler(filename, mode='w')
@@ -20,14 +20,19 @@ class Logger:
         self.logger.setLevel(logging.INFO)
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
+        self.callback = callback
 
     def debug(self, message):
         self.logger.debug(message)
 
     def info(self, message):
+        if self.callback:
+            self.callback(message)
         self.logger.info(message)
 
     def error(self, message):
+        if self.callback:
+            self.callback(message)
         self.logger.error(message)
 
     def write_to_file(self, info, prefix: str):

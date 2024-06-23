@@ -34,7 +34,8 @@ class PlannerAgent(Agent):
         prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(
             prompt=prompt,
-            max_tokens=1000
+            max_tokens=1000,
+            api="openai"
         )
         return self.parse_response(response)
 
