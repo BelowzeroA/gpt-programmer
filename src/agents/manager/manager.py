@@ -118,7 +118,8 @@ class ManagerAgent(Agent):
         prompt = render_prompt(prompt_template, params)
         response = self.llm.generate(
             prompt=prompt,
-            max_tokens=200
+            max_tokens=200,
+            api="openai"
         )
         answer = self.parse_response(response)
         return answer
@@ -188,7 +189,8 @@ class ManagerAgent(Agent):
         selected_observations = [obs for obs in observations if obs["id"] in observation_ids]
         return selected_observations
 
-    def parse_response(self, response: str):
+    @staticmethod
+    def parse_response(response: str):
         if response.startswith("\""):
             response = response[1:]
         if response.endswith("\""):

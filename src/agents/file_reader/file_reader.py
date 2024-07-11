@@ -56,10 +56,13 @@ class FileReaderAgent(Agent):
         info = "\n".join(info_lines[1:-2])
 
         # Limit text fields to 30 characters
-        df = df.apply(lambda x: x.str.slice(0, 30) if x.dtype == "object" else x)
+        df = df.apply(lambda x: x.str.slice(0, 40) if x.dtype == "object" else x)
 
-        # Get the info and first two rows
-        sample = df.head(2)
+        # Get the info and first two rows in the format column_name: value\n
+        # for long string values, only get the first 30 characters
+        sample = ""
+        for i in range(2):
+            sample += f"row #{i + 1}:\n" + df.iloc[i].to_string() + "\n\n"
 
         return f"{info}\nFirst two rows:\n{sample}"
 
