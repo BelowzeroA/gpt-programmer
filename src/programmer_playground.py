@@ -2,10 +2,15 @@ from environment import Environment
 
 
 def main():
-
+    """
+    Write a parser of dataset in json format. The dataset consists of multiple files in a directory. Each file contains some code in multiple languages.
+    The structure of the files is unknown, you need to determine it first.
+    The task is to write a python module that extracts all code in java and put it in a single csv file with the following columns: repo_name, full_path, content.
+    The end result is a python module that implements the above task and stores the result in file "dataset.csv".
+    """
     tasks = [
         """
-    Write a parser of dataset in json format. The dataset consists of multiple files in a directory. Each file contains some code in multiple languages. The structure of the files is unknown, you need to determine it first.
+    Write a parser of dataset in json format. The dataset consists of multiple files in a directory. Each file contains some code in multiple languages. 
     The task is to write a python module that extracts all code in java and put it in a single csv file with the following columns: repo_name, full_path, content.
     The end result is a python module that implements the above task and stores the result in file "dataset.csv".
     """,
@@ -112,23 +117,39 @@ Detailed comments are included in the code for maintainability.
     Also write a unit test module for the selecting function. Use this headline as a test case:
     "What next for Paramount Global after merger talks with Skydance Media break down?" 
     """,
+    """
+there is a working dir c:/Work/projects/ai-programmer/stage/, all paths are relative to it
+There is a script generate_for_validation.py 
+What it does: it takes source code samples from java_validation_noleak.csv
+generates test classes for each piece of source code in Java.
+And then it puts the test code back to the result csv file.
+The task is to modify the script with the following:
+if first generates a  description of test cases from this prompt:
+```
+prompt = "<s>[INST] Write a few test cases for this code:<|code|>\n"
+prompt += source + "<|/code|> Not code, just text description of cases[/INST]"
+```
+and then generates test cases based on this description AND the source code.
+the result should be stored the way it is now, but also the description of test cases should be stored in the column "test_description"
+    """
     ]
     env = Environment()
-    state = env.run_dialog(tasks[4])
-    response = "c:/Work/projects/stage/tickers.csv"
-    state = env.run_dialog({"init_state": "user_response", "response": response})
-    response = """
-    You wrote a module that you stored in c:\Work\projects\stage\ folder.
-   After examining the module, I found the following issues:
-   1. You need to eliminate common words from the list of company names you read from the csv file. For example, "Apple Inc" should be "Apple".
-   Use the cleanco library to clean the company names.
-   2. The matching function should produce a score based on how many words from the company name are in the headline. The score should be normalized to the length of the company name.
-    3. The selecting function should return best matches with scores higher than some threshold.
-    Rework the module to fix these issues and save it in c:\Work\projects\stage\headline_to_ticker_v2.py  
-    
-    Also write a unit test module for the selecting function. Use this headline as a test case:
-    "What next for Paramount Global after merger talks with Skydance Media break down?" 
-"""
+    # state = env.run_dialog(tasks[4])
+    state = env.run(tasks[7])
+#     response = "c:/Work/projects/stage/tickers.csv"
+#     state = env.run_dialog({"init_state": "user_response", "response": response})
+#     response = """
+#     You wrote a module that you stored in c:\Work\projects\stage\ folder.
+#    After examining the module, I found the following issues:
+#    1. You need to eliminate common words from the list of company names you read from the csv file. For example, "Apple Inc" should be "Apple".
+#    Use the cleanco library to clean the company names.
+#    2. The matching function should produce a score based on how many words from the company name are in the headline. The score should be normalized to the length of the company name.
+#     3. The selecting function should return best matches with scores higher than some threshold.
+#     Rework the module to fix these issues and save it in c:\Work\projects\stage\headline_to_ticker_v2.py
+#
+#     Also write a unit test module for the selecting function. Use this headline as a test case:
+#     "What next for Paramount Global after merger talks with Skydance Media break down?"
+# """
     state = env.run_dialog({"init_state": "new_phase", "response": response})
 
 

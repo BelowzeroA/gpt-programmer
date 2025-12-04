@@ -1,0 +1,109 @@
+Your task is to make a step by step plan to accomplish a task.
+User specified the following task:
+```
+{{ task }}
+```
+
+Based on the user's request, create a step-by-step plan to accomplish the task.
+Each step must be a valid json line and should be accompanied with a list of tags that describe the step.
+The tags should be relevant to the step and should be chosen from the following list:
+{{ possible_tags }}
+
+Follow this format for your response:
+
+```
+Project Name: <Write an apt project name with no longer than 5 words>
+
+Plan:
+{ "step": 1, "action": "Describe the first action item needed to progress towards the objective.", "tags": ["tag1", "tag2", ..] }
+{ "step": 2, "action": "Describe the second action item needed to progress towards the objective.", "tags": ["tag1", "tag2", ..] }
+```
+
+
+The plan must be as general as possible, split the whole thing into steps only when it is necessary to investigate some real-world information, like file structure, database structure etc. or get some information from the user
+
+Important notes:
+- Have in mind that the plan steps are being executed by AI agents: python coder-interpreter, manager, bash interpreter. Building the plan do not specify agents' for each step, it will be done later by the manager.
+- If an agent is able to perform an action without contacting other agents or the manager for clarification, this action must correspond to a single step of the plan.
+- if some consecutive steps can be implemented in a single python module, merge them into a single step like this:
+Step N: Develop a  Python module that:
+          - module action 1
+          - module action 2.
+...
+          - module action M.
+Examples:
+```
+Example #1
+Project specification:
+---
+ Write a parser of dataset in json format. The dataset consists of multiple files in a directory. Each file contains some code in multiple languages. The structure of the files is unknown, you need to determine it first.
+    The task is to write a python module that extracts all code in java and put it in a single csv file with the following columns: repo_name, full_path, content.
+    The end result is a python module that implements the above task and stores the result in file "dataset.csv".
+---
+Project Name: Create a Python script to extract java code from files in a directory
+Plan:
+{ "step": 1, "action": "Investigate the structure of the files in the directory.", "tags": ["investigation", "file", "json"] }
+{ "step": 2, "action": "Develop a Python module that extracts all code in java from the files in the directory.", "tags": ["python", "module", "java"] }
+
+Example #2
+Project specification:
+---
+ Rebuild a program module and create a new structure of three modules.
+    Current state:
+    module inference_comm.py has
+    1) logic of identifying  narratives with communication
+    2) logic of identifying  narratives with communication and no names
+    3) boilerplate stuff of manipulating incoming data
+
+    The overall goal is to make three modules with three classes instead of one:
+    comm_detector.py - class VagueNarrativeCommunicationModel that identifies narratives with communication
+    and all boilerplate from inference_comm.py. Names must not be considered in this module
+    no_names_detector.py - class VagueNarrativeNoNamesModel inherited from VagueNarrativeCommunicationModel that
+    identifies narratives with communication and no names
+    no_subject_detector.py - class VagueNarrativeNoSubjectModel inherited from VagueNarrativeCommunicationModel that
+    identifies narratives with communication and no subject. "No subject" means that the narrative does not contain
+    snippets " re ", " re: " or " regarding "
+    No boilerplate should be in these two inherited classes, like predict() method, etc.
+---
+Project Name: Refactor a program module and create a new structure of three modules
+Plan:
+{ "step": 1, "action": "Read the source module inference_comm.py to investigate its structure", "tags": ["investigation", "module", "python"] }
+{ "step": 2, "action": "Create a new Python module named comm_detector.py that will contain the VagueNarrativeCommunicationModel class. This class should include the logic for identifying narratives with communication and the boilerplate code from inference_comm.py. ", "tags": ["class", "module", "code"] }
+{ "step": 3, "action": "Create a new Python module named no_names_detector.py that will contain the VagueNarrativeNoNamesModel class. This class should inherit from the VagueNarrativeCommunicationModel class and include the logic for identifying narratives with communication and no names. Remove any boilerplate code from this class.", "tags": ["class", "module", "code"] }
+{ "step": 4, "action": "Create a new Python module named no_subject_detector.py that will contain the VagueNarrativeNoSubjectModel class. This class should inherit from the VagueNarrativeCommunicationModel class and include the logic for identifying narratives with communication and no subject. Remove any boilerplate code from this class.", "tags": ["class", "module", "code"] }
+
+Example #3
+Project specification:
+---
+I have a spreadsheet of about 5,000 entries with Column A (Stock Symbol) and Column B (Company Name).
+I need a simple and efficient solution that will read in a headline from a newspaper or blog and output the relevant stock tickers mentioned in the title.
+Requirements:
+
+The solution should be able to handle various forms of company names in the headlines, including:
+
+Punctuation (e.g., "Paramount's" should match "Paramount")
+Shortened names (e.g., "Abercrombie" should match "Abercrombie & Fitch Company")
+Partial names (e.g., "Paramount" should match "Paramount Entertainment")
+
+The solution should minimize false positives by accurately distinguishing between common words and company names.
+The output should include the stock symbol(s) of the identified company(ies).
+The solution should be able to process a large number of headlines efficiently.
+The code should be well-documented and easy to maintain.
+
+Deliverables:
+
+A script or program that takes a headline as input and outputs the corresponding stock symbol(s).
+---
+Project Name: Create a Python script to calculate the average age from a CSV file
+{ "step": 1, "action": "Read data from the CSV file to investigate its structure", "tags": ["pandas", "csv", ] }
+{ "step": 2, "action": "Develop a Python module that takes a headline as input and extracts the relevant stock tickers mentioned in it. The module should:\n- Tokenize the headline into individual words\n- Look up each word or phrase in the preprocessed company names DataFrame to find matches\n- Handle partial matches while minimizing false positives\n- Return a list of the stock symbols for the matched companies", "tags": ["python", "module", "parsing"] }
+```
+
+{% if user_data %}
+Also consider the data that user entered on previous steps:
+{{ user_data }}
+{% endif %}
+{% for injection in injections %}
+- {{ injection.text }}
+{% endfor %}
+Your response should only be verbatim in the format inside the code block. Any other response format will be rejected.

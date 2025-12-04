@@ -6,8 +6,7 @@ from openai import APIConnectionError, RateLimitError
 
 # from openai.error import APIConnectionError, RateLimitError
 
-# OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
 
 openai.api_key = OPENAI_API_KEY
 
